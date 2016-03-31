@@ -4,7 +4,10 @@ import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 
 /**
+ *
+ *
  * Created by Oryk on 3/28/2016.
+ *
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({
