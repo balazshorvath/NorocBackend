@@ -3,6 +3,8 @@ package hu.noroc.common.communication.request.ingame;
 import hu.noroc.common.communication.request.Request;
 
 /**
+ * When a player casts a spell, this request is sent by the client.
+ *
  * Created by Oryk on 3/28/2016.
  */
 public class PlayerAttackRequest extends Request {

@@ -7,6 +7,8 @@ import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 
 /**
+ * A Request is sent by the client to the entry/world/area/player object to handle.
+ *
  * Created by Oryk on 3/28/2016.
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")

@@ -1,6 +1,11 @@
 package hu.noroc.common.communication.message;
 
 /**
+ * This type of message is sent, whenever an entity (by now the abstraction is called Being)
+ * attacks another entity.
+ *
+ * TODO: discuss, how spells work.
+ *
  * Created by Oryk on 3/28/2016.
  */
 public class EntityAttackMessage extends Message {

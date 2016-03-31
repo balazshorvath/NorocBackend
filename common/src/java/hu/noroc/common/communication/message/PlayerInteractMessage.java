@@ -1,6 +1,12 @@
 package hu.noroc.common.communication.message;
 
 /**
+ * Whenever a player interacts with a friendly NPC, this message should be sent to
+ * all the players inside the current Area.
+ *
+ * The message does not contain much useful information.
+ * May be useful later though..
+ *
  * Created by Oryk on 3/28/2016.
  */
 public class PlayerInteractMessage extends Message {

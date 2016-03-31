@@ -4,14 +4,17 @@ import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 
 /**
- *
+ * A Message is sent by the server entities to the clients.
+ * They are basically synchronization messages.
  *
  * Created by Oryk on 3/28/2016.
  *
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({
-
+    @JsonSubTypes.Type(value = EntityAttackMessage.class, name = "EntityAttackMessage"),
+    @JsonSubTypes.Type(value = EntityMoveMessage.class, name = "EntityMoveMessage"),
+    @JsonSubTypes.Type(value = PlayerInteractMessage.class, name = "PlayerInteractMessage")
 })
 public class Message {
     protected String type;

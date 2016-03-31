@@ -3,6 +3,8 @@ package hu.noroc.common.communication.request.ingame;
 import hu.noroc.common.communication.request.Request;
 
 /**
+ * When a player interacts with a friendly Being, this request is sent.
+ *
  * Created by Oryk on 3/28/2016.
  */
 public class PlayerInteractRequest extends Request {

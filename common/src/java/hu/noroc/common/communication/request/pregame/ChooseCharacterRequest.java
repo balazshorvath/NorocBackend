@@ -3,6 +3,8 @@ package hu.noroc.common.communication.request.pregame;
 import hu.noroc.common.communication.request.Request;
 
 /**
+ * Request for logging in with a character to a specified world server.
+ *
  * Created by Oryk on 3/28/2016.
  */
 public class ChooseCharacterRequest extends Request {

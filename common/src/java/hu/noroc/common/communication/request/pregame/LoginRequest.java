@@ -3,6 +3,8 @@ package hu.noroc.common.communication.request.pregame;
 import hu.noroc.common.communication.request.Request;
 
 /**
+ * Login request.
+ *
  * Created by Oryk on 3/28/2016.
  */
 public class LoginRequest extends Request {
