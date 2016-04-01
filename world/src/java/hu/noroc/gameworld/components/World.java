@@ -43,7 +43,7 @@ public class World {
 
         LOGGER.info("Initializing areas.");
         for(int i = 0; i < areaCount; i++){
-            Area area = new Area(areaSize, (int)(mapWidth / areaSize));
+            Area area = new Area(areaSize, (int)(mapWidth / areaSize), this);
             areas.put(area.getId(), area);
             LOGGER.info("Added area " + area.getId());
         }
@@ -61,6 +61,8 @@ public class World {
         }
         LOGGER.info("Initializing NPCs finished.");
     }
+
+
 
     public void putPlayerToArea(Player player){
         Area area = areas.entrySet().stream().filter(integerAreaEntry ->

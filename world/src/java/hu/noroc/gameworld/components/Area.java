@@ -15,6 +15,8 @@ import java.util.logging.Logger;
  */
 public class Area {
     private final static Logger LOGGER = Logger.getLogger(Area.class.getName());
+
+    protected World world;
     /* Areas are squares */
     private double sideLength;
     private int mapWidth;
@@ -31,7 +33,8 @@ public class Area {
 
     protected Thread messageConsumer;
 
-    public Area(double sideLength, int mapWidth) {
+    public Area(double sideLength, int mapWidth, World world) {
+        this.world = world;
         this.id = areaId++;
         this.sideLength = sideLength;
         this.mapWidth = mapWidth;
