@@ -2,9 +2,7 @@ package hu.noroc.common.mongodb;
 
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoDatabase;
-import hu.noroc.common.data.repository.CharacterRepo;
-import hu.noroc.common.data.repository.SessionRepo;
-import hu.noroc.common.data.repository.UserRepo;
+import hu.noroc.common.data.repository.*;
 
 /**
  * Created by Oryk on 12/24/2015.
@@ -26,6 +24,10 @@ public class NorocDB {
     private UserRepo userRepo;
     private SessionRepo sessionRepo;
     private CharacterRepo characterRepo;
+    private CharacterClassRepo characterClassRepo;
+    private ItemRepo itemRepo;
+    private NPCRepo npcRepo;
+    private SpellRepo spellRepo;
 
     private NorocDB(String url, String db, String user, String pw) {
         this.url = url;
@@ -65,6 +67,10 @@ public class NorocDB {
         userRepo = new UserRepo(database);
         sessionRepo = new SessionRepo(database);
         characterRepo = new CharacterRepo(database);
+        characterClassRepo = new CharacterClassRepo(database);
+        itemRepo = new ItemRepo(database);
+        npcRepo = new NPCRepo(database);
+        spellRepo = new SpellRepo(database);
     }
 
     public UserRepo getUserRepo() {
@@ -77,5 +83,21 @@ public class NorocDB {
 
     public CharacterRepo getCharacterRepo() {
         return characterRepo;
+    }
+
+    public ItemRepo getItemRepo() {
+        return itemRepo;
+    }
+
+    public CharacterClassRepo getCharacterClassRepo() {
+        return characterClassRepo;
+    }
+
+    public NPCRepo getNpcRepo() {
+        return npcRepo;
+    }
+
+    public SpellRepo getSpellRepo() {
+        return spellRepo;
     }
 }

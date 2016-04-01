@@ -52,6 +52,15 @@ public class MongoDBRepo<T, ID> implements MongoRepo<T, ID> {
     }
 
     @Override
+    public List<T> findAll() throws IOException {
+        List<T> res = new ArrayList<>();
+        for(Document d : collection.find()){
+            res.add(json.readValue(d.toJson(), documentClass));
+        }
+        return res;
+    }
+
+    @Override
     public void insert(T t) throws IOException {
         collection.insertOne(Document.parse(json.writeValueAsString(t)));
     }

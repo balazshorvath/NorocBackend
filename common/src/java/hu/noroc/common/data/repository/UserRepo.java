@@ -1,7 +1,7 @@
 package hu.noroc.common.data.repository;
 
 import com.mongodb.client.MongoDatabase;
-import hu.noroc.common.data.model.User;
+import hu.noroc.common.data.model.user.User;
 import hu.noroc.common.mongodb.MongoDBRepo;
 
 

@@ -1,6 +1,10 @@
-package hu.noroc.common.data.model;
+package hu.noroc.common.data.model.character;
 
+import hu.noroc.common.data.model.InventoryItem;
 import org.bson.types.ObjectId;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Oryk on 1/11/2016.
@@ -8,14 +12,15 @@ import org.bson.types.ObjectId;
 public class Character {
     private String id = new ObjectId().toString();
     private String name;
-    private Long userId;
+    private String userId;
     private Long classId;
-    private Long xp = new Long(0);
+    private long xp = 0;
+    private List<InventoryItem> inventory = new ArrayList<>();
 
     public Character() {
     }
 
-    public Character(String name, Long userId, Long classId) {
+    public Character(String name, String userId, Long classId) {
         this.name = name;
         this.userId = userId;
         this.classId = classId;
@@ -37,11 +42,11 @@ public class Character {
         this.name = name;
     }
 
-    public Long getUserId() {
+    public String getUserId() {
         return userId;
     }
 
-    public void setUserId(Long userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
     }
 
@@ -59,5 +64,17 @@ public class Character {
 
     public void setXp(Long xp) {
         this.xp = xp;
+    }
+
+    public void setXp(long xp) {
+        this.xp = xp;
+    }
+
+    public List<InventoryItem> getInventory() {
+        return inventory;
+    }
+
+    public void setInventory(List<InventoryItem> inventory) {
+        this.inventory = inventory;
     }
 }

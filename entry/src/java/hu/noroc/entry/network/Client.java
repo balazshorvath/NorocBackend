@@ -1,7 +1,7 @@
 package hu.noroc.entry.network;
 
-import hu.noroc.common.data.model.User;
-import hu.noroc.gameworld.components.Player;
+import hu.noroc.common.data.model.user.User;
+import hu.noroc.gameworld.components.behaviour.Player;
 
 import java.net.Socket;
 import java.util.Objects;

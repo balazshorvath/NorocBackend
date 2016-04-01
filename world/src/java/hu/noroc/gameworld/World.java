@@ -1,6 +1,9 @@
-package hu.noroc.gameworld.components;
+package hu.noroc.gameworld;
 
-import hu.noroc.gameworld.config.NPCScript;
+import hu.noroc.gameworld.components.behaviour.NPC;
+import hu.noroc.gameworld.components.behaviour.Player;
+import hu.noroc.gameworld.components.behaviour.Spell;
+import hu.noroc.gameworld.components.scripting.ScriptedNPC;
 import hu.noroc.gameworld.config.WorldConfig;
 import hu.noroc.gameworld.messaging.player.PlayerEvent;
 
@@ -8,6 +11,10 @@ import java.util.HashMap;
 import java.util.logging.Logger;
 
 /**
+ * The "game server".
+ *
+ * Initialization happens through initWorld.
+ *
  * Created by Oryk on 3/19/2016.
  */
 public class World {
@@ -18,8 +25,9 @@ public class World {
 
     HashMap<String, Player> players = new HashMap<>();
     HashMap<Integer, Area> areas = new HashMap<>();
+    HashMap<String, Spell> spells = new HashMap<>();
 
-    public World() {
+    private World() {
     }
 
     /* EVENTS FROM OUTSIDE */
@@ -34,32 +42,36 @@ public class World {
     }
 
 
-    public void initWorld(WorldConfig config){
-        this.mapWidth = config.getMapWidth();
-        this.mapHeight = config.getMapHeight();
-        this.areaSize = config.getAreaSize();
+    public static World initWorld(WorldConfig config){
+        World world = new World();
+        world.mapWidth = config.getMapWidth();
+        world.mapHeight = config.getMapHeight();
+        world.areaSize = config.getAreaSize();
 
-        int areaCount = (int)(mapWidth / areaSize) + (int)(mapHeight / areaSize) + 2;
+        int areaCount = (int)(world.mapWidth / world.areaSize) + (int)(world.mapHeight / world.areaSize) + 2;
 
         LOGGER.info("Initializing areas.");
         for(int i = 0; i < areaCount; i++){
-            Area area = new Area(areaSize, (int)(mapWidth / areaSize), this);
-            areas.put(area.getId(), area);
+            Area area = new Area(world.areaSize, (int)(world.mapWidth / world.areaSize), world);
+            world.areas.put(area.getId(), area);
             LOGGER.info("Added area " + area.getId());
         }
         LOGGER.info("Initializing areas finished.");
 
         LOGGER.info("Initializing NPCs.");
-        for(NPCScript script : config.getScripts()){
+        for(ScriptedNPC script : config.getScripts()){
             NPC npc = script.runNPC();
 
-            Area npcArea = areas.values().stream()
+            Area npcArea = world.areas.values().stream()
                     .filter(area -> area.isInside(npc.getX(), npc.getY()))
                     .findFirst().get();
             npcArea.getNpcs().add(script);
             LOGGER.info("Added NPC " + npc.getName() + " to area " + npcArea.getId());
         }
         LOGGER.info("Initializing NPCs finished.");
+
+
+        return world;
     }
 
 

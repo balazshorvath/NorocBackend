@@ -12,6 +12,7 @@ import java.util.List;
 public interface MongoRepo<T, ID> {
     T findById(ID id) throws IOException;
     List<T> findBy(String key, String value) throws IOException;
+    List<T> findAll() throws IOException;
 
     void insert(T t) throws IOException;
     void delete(ID id);

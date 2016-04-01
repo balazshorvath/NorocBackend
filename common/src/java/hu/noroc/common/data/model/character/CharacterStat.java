@@ -1,4 +1,4 @@
-package hu.noroc.gameworld.components;
+package hu.noroc.common.data.model.character;
 
 /**
  * Created by Oryk on 3/20/2016.

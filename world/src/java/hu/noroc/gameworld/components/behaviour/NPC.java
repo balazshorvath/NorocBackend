@@ -1,4 +1,4 @@
-package hu.noroc.gameworld.components;
+package hu.noroc.gameworld.components.behaviour;
 
 import hu.noroc.gameworld.messaging.EventMessage;
 

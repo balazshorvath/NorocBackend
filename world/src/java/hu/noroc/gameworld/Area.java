@@ -1,6 +1,7 @@
-package hu.noroc.gameworld.components;
+package hu.noroc.gameworld;
 
-import hu.noroc.gameworld.config.NPCScript;
+import hu.noroc.gameworld.components.behaviour.Player;
+import hu.noroc.gameworld.components.scripting.ScriptedNPC;
 import hu.noroc.gameworld.messaging.EventMessage;
 
 import java.util.ArrayList;
@@ -26,7 +27,7 @@ public class Area {
     protected double startX, startY;
 
 
-    protected List<NPCScript> npcs = new ArrayList<>();
+    protected List<ScriptedNPC> npcs = new ArrayList<>();
     protected List<Player> players = new ArrayList<>();
 
     protected BlockingDeque<EventMessage> areaMessenger = new LinkedBlockingDeque<>();
@@ -74,11 +75,11 @@ public class Area {
         return players;
     }
 
-    public boolean isInside(float x, float y) {
+    public boolean isInside(double x, double y) {
         return !(x < startX || y < startY) && !(x > startX + sideLength || y > startY + sideLength);
     }
 
-    public List<NPCScript> getNpcs() {
+    public List<ScriptedNPC> getNpcs() {
         return npcs;
     }
 

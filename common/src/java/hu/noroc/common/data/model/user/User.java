@@ -1,4 +1,4 @@
-package hu.noroc.common.data.model;
+package hu.noroc.common.data.model.user;
 
 
 /**

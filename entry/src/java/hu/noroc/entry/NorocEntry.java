@@ -2,7 +2,7 @@ package hu.noroc.entry;
 
 import hu.noroc.common.mongodb.NorocDB;
 import hu.noroc.entry.network.Client;
-import hu.noroc.gameworld.components.World;
+import hu.noroc.gameworld.World;
 import hu.noroc.gameworld.config.WorldConfig;
 import org.bson.types.ObjectId;
 
