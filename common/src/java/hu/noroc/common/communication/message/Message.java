@@ -14,11 +14,12 @@ import org.codehaus.jackson.annotate.JsonTypeInfo;
 @JsonSubTypes({
     @JsonSubTypes.Type(value = EntityAttackMessage.class, name = "EntityAttackMessage"),
     @JsonSubTypes.Type(value = EntityMoveMessage.class, name = "EntityMoveMessage"),
-    @JsonSubTypes.Type(value = PlayerInteractMessage.class, name = "PlayerInteractMessage")
+    @JsonSubTypes.Type(value = PlayerInteractMessage.class, name = "PlayerInteractMessage"),
+    @JsonSubTypes.Type(value = PlayerEquipMessage.class, name = "PlayerEquipMessage")
 })
 public class Message {
     protected String type;
-    protected String entityType;
+    protected EntityType entityType;
     protected String entityId;
 
     public String getType() {
@@ -37,11 +38,11 @@ public class Message {
         this.entityId = entityId;
     }
 
-    public String getEntityType() {
+    public EntityType getEntityType() {
         return entityType;
     }
 
-    public void setEntityType(String entityType) {
+    public void setEntityType(EntityType entityType) {
         this.entityType = entityType;
     }
 }

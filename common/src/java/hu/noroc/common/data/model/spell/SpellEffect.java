@@ -16,6 +16,10 @@ public class SpellEffect {
     private SpellType subtype;
     private boolean mixed;
 
+    /*For HOTs and DOTs*/
+    private long duration;
+    private int period;
+
     public enum SpellType{
         BUFF,
         DEBUFF,
@@ -65,5 +69,21 @@ public class SpellEffect {
 
     public void setMixed(boolean mixed) {
         this.mixed = mixed;
+    }
+
+    public int getPeriod() {
+        return period;
+    }
+
+    public void setPeriod(int period) {
+        this.period = period;
+    }
+
+    public long getDuration() {
+        return duration;
+    }
+
+    public void setDuration(long duration) {
+        this.duration = duration;
     }
 }

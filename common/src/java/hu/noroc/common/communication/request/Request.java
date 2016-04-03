@@ -22,7 +22,8 @@ import org.codehaus.jackson.annotate.JsonTypeInfo;
         @JsonSubTypes.Type(value = InitRequest.class, name = "InitRequest"),
         @JsonSubTypes.Type(value = PlayerAttackRequest.class, name = "PlayerAttackRequest"),
         @JsonSubTypes.Type(value = PlayerInteractRequest.class, name = "PlayerInteractRequest"),
-        @JsonSubTypes.Type(value = PlayerMoveRequest.class, name = "PlayerMoveRequest")
+        @JsonSubTypes.Type(value = PlayerMoveRequest.class, name = "PlayerMoveRequest"),
+        @JsonSubTypes.Type(value = PlayerEquipRequest.class, name = "PlayerEquipRequest")
 })
 public class Request {
     protected String type;

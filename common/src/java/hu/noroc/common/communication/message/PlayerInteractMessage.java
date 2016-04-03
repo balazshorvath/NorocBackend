@@ -14,7 +14,7 @@ public class PlayerInteractMessage extends Message {
 
     public PlayerInteractMessage() {
         this.type = PlayerInteractMessage.class.getSimpleName();
-        this.entityType = "Player";
+        this.entityType = EntityType.PLAYER;
     }
 
     public String getTargetId() {

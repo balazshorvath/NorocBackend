@@ -8,7 +8,6 @@ import hu.noroc.gameworld.messaging.EventMessage;
 public interface NPC extends Being, Runnable {
 
     /* Logic */
-    void newMessage(EventMessage message);
     void spawn(long time);
 
     /* Properties */
