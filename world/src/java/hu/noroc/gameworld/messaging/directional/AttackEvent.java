@@ -10,6 +10,10 @@ public class AttackEvent extends DirectionalEvent {
     protected SpellEffect effect;
     protected Spell spell;
 
+    public AttackEvent() {
+        this.directionalType = DirectionalType.ATTACK;
+    }
+
     public SpellEffect getEffect() {
         return effect;
     }

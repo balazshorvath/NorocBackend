@@ -3,6 +3,7 @@ package hu.noroc.gameworld;
 import hu.noroc.gameworld.components.behaviour.Player;
 import hu.noroc.gameworld.components.scripting.ScriptedNPC;
 import hu.noroc.gameworld.messaging.EventMessage;
+import hu.noroc.gameworld.messaging.directional.AttackEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,6 +66,36 @@ public class Area {
 
         messageConsumer.start();
 
+    }
+
+    public void applySpell(AttackEvent event){
+        final double xp = event.getBeing().getX();
+        final double yp = event.getBeing().getY();
+
+        final double xd = event.getX();
+        final double yd = event.getY();
+        final double r = event.getSpell().getRadius();
+        final double as = event.getSpell().getAlpha();
+        // Direction deg
+        final double ad = Math.atan((yd - yp) / (xd - xp));
+
+        //TODO: Consider parallel execution (search->applySpell), while the entity calcs the damage
+        // npcs.parallelStream();
+        npcs.forEach(scriptedNPC -> {
+            // Target - Entity
+            double xpt = scriptedNPC.getEntity().getX() - xp;
+            double absVecpt = Math.sqrt((xpt + scriptedNPC.getEntity().getY() - yp));
+
+            if (absVecpt > r)
+                return;
+            if (as == 180.0)
+                return;
+
+            double apt = Math.acos(xpt / absVecpt);
+
+            if((apt <= (ad + as)) && ((ad - as) <= apt))
+                scriptedNPC.getEntity().attacked(event.getEffect(), event.getBeing());
+        });
     }
 
     public void newMessage(EventMessage message){

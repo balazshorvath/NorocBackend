@@ -4,6 +4,7 @@ import hu.noroc.common.data.model.user.User;
 import hu.noroc.gameworld.components.behaviour.Player;
 
 import java.net.Socket;
+import java.security.KeyPair;
 import java.util.Objects;
 
 /**
@@ -17,7 +18,8 @@ public class Client {
 
     private String worldId;
     private String characterId;
-    private Player player;
+
+    private KeyPair key;
 
     public Client() {
     }
@@ -79,5 +81,13 @@ public class Client {
 
     public void setCharacterId(String characterId) {
         this.characterId = characterId;
+    }
+
+    public KeyPair getKey() {
+        return key;
+    }
+
+    public void setKey(KeyPair key) {
+        this.key = key;
     }
 }

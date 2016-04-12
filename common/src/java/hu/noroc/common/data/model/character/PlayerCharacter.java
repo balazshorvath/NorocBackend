@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Created by Oryk on 1/11/2016.
  */
-public class Character {
+public class PlayerCharacter {
     private String id = new ObjectId().toString();
     private String name;
     private String userId;
@@ -17,10 +17,10 @@ public class Character {
     private long xp = 0;
     private List<InventoryItem> inventory = new ArrayList<>();
 
-    public Character() {
+    public PlayerCharacter() {
     }
 
-    public Character(String name, String userId, Long classId) {
+    public PlayerCharacter(String name, String userId, Long classId) {
         this.name = name;
         this.userId = userId;
         this.classId = classId;

@@ -24,7 +24,7 @@ public abstract class Scripted<Entity> {
         file = new File(script);
     }
 
-    public Entity runNPC() {
+    public Entity runEntity() {
         try {
             if(shouldReRun()) {
                 run();
@@ -57,4 +57,8 @@ public abstract class Scripted<Entity> {
     }
 
     abstract protected Entity run() throws IOException, ScriptException, NoSuchAlgorithmException;
+
+    public Entity getEntity() {
+        return entity;
+    }
 }

@@ -3,6 +3,7 @@ package hu.noroc.gameworld.components.behaviour;
 import hu.noroc.common.data.model.character.CharacterStat;
 import hu.noroc.common.data.model.spell.Spell;
 import hu.noroc.common.data.model.spell.SpellEffect;
+import hu.noroc.gameworld.Area;
 import hu.noroc.gameworld.messaging.EventMessage;
 
 import java.util.List;
@@ -15,10 +16,10 @@ public interface Being {
     void heal(int amount);
     boolean isInside(double x, double y);
 
-    void newMessage(EventMessage message);
+    void newEvent(EventMessage message);
 
     /* The reason, why the params have SpellEffect, is because otherwise the damage calc for ex. wouldn't be OK */
-    void effected(SpellEffect effect, Spell spell, Being caster);
+    void attacked(SpellEffect effect, Being caster);
     List<Spell> getEffects();
 
     CharacterStat getStats();
@@ -34,5 +35,5 @@ public interface Being {
     double getY();
     void setY(double y);
     Integer getArea();
-    Integer setArea(Integer areaId);
+    void setArea(Area area);
 }

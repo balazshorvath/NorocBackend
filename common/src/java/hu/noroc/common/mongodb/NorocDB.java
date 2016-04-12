@@ -22,7 +22,6 @@ public class NorocDB {
     /*REPOSITORIES*/
 
     private UserRepo userRepo;
-    private SessionRepo sessionRepo;
     private CharacterRepo characterRepo;
     private CharacterClassRepo characterClassRepo;
     private ItemRepo itemRepo;
@@ -65,7 +64,6 @@ public class NorocDB {
         database = client.getDatabase(db);
 
         userRepo = new UserRepo(database);
-        sessionRepo = new SessionRepo(database);
         characterRepo = new CharacterRepo(database);
         characterClassRepo = new CharacterClassRepo(database);
         itemRepo = new ItemRepo(database);
@@ -75,10 +73,6 @@ public class NorocDB {
 
     public UserRepo getUserRepo() {
         return userRepo;
-    }
-
-    public SessionRepo getSessionRepo() {
-        return sessionRepo;
     }
 
     public CharacterRepo getCharacterRepo() {

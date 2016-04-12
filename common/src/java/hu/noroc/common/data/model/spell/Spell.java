@@ -6,6 +6,7 @@ package hu.noroc.common.data.model.spell;
  */
 public class Spell {
     private String id;
+    private double radius, alpha;
     private SpellCost cost;
     private SpellEffect effect;
 
@@ -31,5 +32,21 @@ public class Spell {
 
     public void setCost(SpellCost cost) {
         this.cost = cost;
+    }
+
+    public double getRadius() {
+        return radius;
+    }
+
+    public void setRadius(double radius) {
+        this.radius = radius;
+    }
+
+    public double getAlpha() {
+        return alpha;
+    }
+
+    public void setAlpha(double alpha) {
+        this.alpha = alpha;
     }
 }
