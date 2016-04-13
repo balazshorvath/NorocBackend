@@ -2,7 +2,6 @@ package hu.noroc.entry;
 
 import hu.noroc.common.mongodb.NorocDB;
 import hu.noroc.entry.config.EntryConfig;
-import hu.noroc.entry.listener.WorldListener;
 import hu.noroc.entry.network.Client;
 import hu.noroc.entry.security.SecurityUtils;
 import hu.noroc.gameworld.World;
