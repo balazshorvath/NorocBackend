@@ -13,3 +13,19 @@ dependencies {
     compile project(':common')
     compile project(':world')
 }
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'hu.noroc.entry.NorocEntry'
+    }
+}
+task fullJar(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'Noroc Entry Application',
+                'Implementation-Version': version,
+                'Main-Class': 'hu.noroc.entry.NorocEntry'
+    }
+    baseName = project.name + '-all'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
