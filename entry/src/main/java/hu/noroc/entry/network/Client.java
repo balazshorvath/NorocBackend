@@ -5,21 +5,25 @@ import hu.noroc.gameworld.components.behaviour.Player;
 
 import java.net.Socket;
 import java.security.KeyPair;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.util.Objects;
 
 /**
  * Created by Oryk on 3/28/2016.
  */
 public class Client {
-    private Socket socket;
-    private String session;
+    protected boolean online;
+    protected Socket socket;
+    protected String session;
 
-    private User user;
+    protected User user;
 
-    private String worldId;
-    private String characterId;
+    protected String worldId;
+    protected String characterId;
 
-    private KeyPair key;
+    protected KeyPair key;
+    protected PublicKey clientPublic;
 
     public Client() {
     }
@@ -89,5 +93,21 @@ public class Client {
 
     public void setKey(KeyPair key) {
         this.key = key;
+    }
+
+    public boolean isOnline() {
+        return online;
+    }
+
+    public void setOnline(boolean online) {
+        this.online = online;
+    }
+
+    public PublicKey getClientPublic() {
+        return clientPublic;
+    }
+
+    public void setClientPublic(PublicKey clientPublic) {
+        this.clientPublic = clientPublic;
     }
 }

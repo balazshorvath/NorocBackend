@@ -121,13 +121,9 @@ public class NorocEntry {
                 try {
                     socket = server.accept();
                     client = new Client(socket, new ObjectId().toString(), null);
-                    SecurityUtils.generateKey(client);
                     clients.put(client.getSession(), client);
                 } catch (IOException e) {
                     LOGGER.warning(e.getMessage());
-                } catch (NoSuchAlgorithmException e) {
-                    LOGGER.warning(e.getMessage());
-                    return;
                 }
             }
         });
