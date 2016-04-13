@@ -2,7 +2,6 @@ package hu.noroc.entry;
 
 import hu.noroc.common.mongodb.NorocDB;
 import hu.noroc.entry.config.EntryConfig;
-import hu.noroc.entry.listener.WorldListener;
 import hu.noroc.entry.network.Client;
 import hu.noroc.entry.security.SecurityUtils;
 import hu.noroc.gameworld.World;
@@ -34,7 +33,7 @@ public class NorocEntry {
     private static Map<String, Thread> worldListeners = new HashMap<>();
 
 
-    public static void main(String[] args){
+    public static void main(String[] args) throws InterruptedException {
         if(args.length < 3 && (args.length % 2) != 1) {
             System.out.printf("Params should be:\n" +
                     "{entryConfig} [{mainConf1 npcConf1} {mainConf2 npcConf2} ...]\n");
@@ -47,7 +46,7 @@ public class NorocEntry {
         }
 
         database = NorocDB.getInstance(args[0], args[1]);
-        for(int i = 2; i < args.length; i += 2) {
+        for(int i = 1; i < args.length; i += 2) {
             WorldConfig config = null;
             World world = null;
             String id;
@@ -68,6 +67,7 @@ public class NorocEntry {
 
         while(true){
             //TODO: here accept console request
+            Thread.sleep(1000);
         }
     }
 
@@ -130,7 +130,6 @@ public class NorocEntry {
                     return;
                 }
             }
-
         });
         return tcpServer;
     }

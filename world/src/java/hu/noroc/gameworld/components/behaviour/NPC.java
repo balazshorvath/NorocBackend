@@ -1,6 +1,5 @@
 package hu.noroc.gameworld.components.behaviour;
 
-import hu.noroc.gameworld.messaging.EventMessage;
 
 /**
  * Created by Oryk on 3/19/2016.
