@@ -7,6 +7,7 @@ import hu.noroc.entry.security.SecurityUtils;
 import hu.noroc.gameworld.messaging.EventMessage;
 import hu.noroc.gameworld.messaging.directional.DirectionalEvent;
 
+import java.security.PrivateKey;
 import java.security.PublicKey;
 
 /**
@@ -14,10 +15,22 @@ import java.security.PublicKey;
  */
 //TODO: I think these can be easily tested, and should be
 public class NetworkData {
-    public static byte[] prepareRSAData(String data, PublicKey key) {
+    public static String compressAndRSAData(String data, PublicKey key) {
         String result = Compressor.gzip(data);
         return SecurityUtils.encrypt(result, key);
     }
+    public static String rsaData(String data, PublicKey key) {
+        return SecurityUtils.encrypt(data, key);
+    }
+    public static String decompressAndRSADecryptData(String data, PrivateKey key) {
+        String result = Compressor.gunzip(data);
+        return SecurityUtils.decrypt(result, key);
+    }
+    public static String rsaDecryptData(String data, PrivateKey key) {
+        return SecurityUtils.decrypt(data, key);
+    }
+
+
     public static Message getFromEvent(EventMessage eventMessage){
         switch(eventMessage.getActivity()){
             case MOVE:

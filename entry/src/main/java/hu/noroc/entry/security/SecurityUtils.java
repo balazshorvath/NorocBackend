@@ -32,18 +32,17 @@ public class SecurityUtils {
          *          :The public key
          * @return Encrypted text
          */
-        public static byte[] encrypt(String text, PublicKey key) {
-            byte[] cipherText = null;
+        public static String encrypt(String text, PublicKey key) {
             try {
                 // get an RSA cipher object and print the provider
                 final Cipher cipher = Cipher.getInstance("RSA");
                 // encrypt the plain text using the public key
                 cipher.init(Cipher.ENCRYPT_MODE, key);
-                cipherText = cipher.doFinal(text.getBytes("UTF-8"));
+                return new String(cipher.doFinal(text.getBytes("UTF-8")));
             } catch (Exception e) {
                 e.printStackTrace();
+                return null;
             }
-            return cipherText;
         }
 
         /**
@@ -55,7 +54,7 @@ public class SecurityUtils {
          *          :The private key
          * @return plain text
          */
-        public static String decrypt(byte[] text, PrivateKey key) {
+        public static String decrypt(String text, PrivateKey key) {
             try {
                 // get an RSA cipher object and print the provider
                 final Cipher cipher = Cipher.getInstance("RSA");
@@ -63,7 +62,7 @@ public class SecurityUtils {
                 // decrypt the text using the private key
                 cipher.init(Cipher.DECRYPT_MODE, key);
 
-                return new String(cipher.doFinal(text));
+                return new String(cipher.doFinal(text.getBytes("UTF-8")));
             } catch (Exception ex) {
                 ex.printStackTrace();
                 return null;
