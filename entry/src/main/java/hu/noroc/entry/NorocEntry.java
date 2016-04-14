@@ -3,6 +3,7 @@ package hu.noroc.entry;
 import hu.noroc.common.mongodb.NorocDB;
 import hu.noroc.entry.config.EntryConfig;
 import hu.noroc.entry.network.Client;
+import hu.noroc.entry.network.GamingClient;
 import hu.noroc.entry.security.SecurityUtils;
 import hu.noroc.gameworld.World;
 import hu.noroc.gameworld.config.WorldConfig;
@@ -66,7 +67,6 @@ public class NorocEntry {
         worldListeners.values().parallelStream().forEach(Thread::start);
 
         while(true){
-            //TODO: here accept console request
             Thread.sleep(1000);
         }
     }
@@ -78,7 +78,7 @@ public class NorocEntry {
             Client client;
             OutputStream stream;
             while(true){
-                try{
+                try {
                     msg = world.getSyncMessage();
                     client = clients.get(msg.getSession());
                     stream = client.getSocket().getOutputStream();
@@ -89,7 +89,7 @@ public class NorocEntry {
                             client.getKey().getPublic()
                     ).getBytes("UTF-8"));
                     stream.flush();
-                }catch(NullPointerException | IOException e){
+                } catch(NullPointerException | IOException e) {
                     LOGGER.info("getWorldListener exception.");
                 }
             }
@@ -100,7 +100,6 @@ public class NorocEntry {
         if(tcpServer != null)
             return tcpServer;
         tcpServer = new Thread(() -> {
-            //TODO: accept clients, create Client, start Client
             String portS = EntryConfig.getValue("port");
             int port = 63001;
             if(portS != null)
@@ -115,13 +114,21 @@ public class NorocEntry {
                 return;
             }
             Socket socket;
-            Client client;
+            GamingClient client;
 
             while(true){
                 try {
                     socket = server.accept();
-                    client = new Client(socket, new ObjectId().toString(), null);
+                    client = new GamingClient(socket, new ObjectId().toString(), null);
+                    new Thread(client).start();
                     clients.put(client.getSession(), client);
+//                    if(!socket.getInetAddress().isLoopbackAddress()){
+//                        client = new GamingClient(socket, new ObjectId().toString(), null);
+//                        new Thread(client).start();
+//                        clients.put(client.getSession(), client);
+//                    }else{
+//                        //TODO: here accept console request
+//                    }
                 } catch (IOException e) {
                     LOGGER.warning(e.getMessage());
                 }

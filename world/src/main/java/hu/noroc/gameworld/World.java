@@ -1,6 +1,7 @@
 package hu.noroc.gameworld;
 
 import hu.noroc.common.communication.request.Request;
+import hu.noroc.common.communication.request.pregame.ChooseCharacterRequest;
 import hu.noroc.common.data.model.character.*;
 import hu.noroc.common.data.model.spell.Spell;
 import hu.noroc.common.data.repository.CharacterClassRepo;
@@ -13,6 +14,7 @@ import hu.noroc.gameworld.components.scripting.ScriptedNPC;
 import hu.noroc.gameworld.config.WorldConfig;
 import hu.noroc.gameworld.messaging.sync.SyncMessage;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.concurrent.BlockingDeque;
 import java.util.logging.Logger;
@@ -29,6 +31,8 @@ public class World {
     private static boolean running = true;
 
     private double mapWidth, mapHeight, areaSize;
+    private String name;
+    private int maxPlayers = 50;
 
     HashMap<String, Player> players = new HashMap<>();
     HashMap<Integer, Area> areas = new HashMap<>();
@@ -51,7 +55,6 @@ public class World {
             return;
         if(areas.get(pl.getArea()) == null)
             putPlayerToArea(pl);
-        //TODO conversion
         pl.clientRequest(message);
     }
 
@@ -63,14 +66,25 @@ public class World {
         return clientMessages.poll();
     }
 
-    public void loginCharacter(String characterId, String userId, String session) throws Exception {
-        PlayerCharacter playerCharacter = characterRepo.findById(characterId);
+    public void loginCharacter(ChooseCharacterRequest request, String userId) throws Exception{
+        PlayerCharacter playerCharacter = characterRepo.findById(request.getCharacterId());
         if(!playerCharacter.getUserId().equals(userId))
             throw new Exception("You do not own this character!");
         CharacterClass characterClass = characterClassRepo.findById(playerCharacter.getClassId());
-        if(characterClass == null)
-            return;
-        //TODO: Create Player, set World and Area
+        Player player = new Player();
+
+        player.setCharacter(playerCharacter);
+        player.setCharacterClass(characterClass);
+        player.setId(request.getSession());
+        player.setName(playerCharacter.getName());
+        player.setWorld(this);
+
+
+
+        players.put(player.getId(), player);
+
+        putPlayerToArea(player);
+
     }
 
     public static World initWorld(WorldConfig config){
@@ -110,6 +124,9 @@ public class World {
         return world;
     }
 
+    public Spell getSpell(String spellId){
+        return spells.get(spellId);
+    }
 
 
     public void putPlayerToArea(Player player){
@@ -130,6 +147,19 @@ public class World {
         player.setArea(area);
     }
 
+    public int getMaxPlayers(){
+        return this.maxPlayers;
+    }
+
+    public void setMaxPlayers(int maxPlayers) {
+        //TODO: handle player already playing.
+        this.maxPlayers = maxPlayers;
+    }
+
+    public int getPlayerCount(){
+        return this.players.size();
+    }
+
     public static boolean isRunning() {
         return running;
     }
@@ -140,5 +170,13 @@ public class World {
 
     public double getMapHeight() {
         return mapHeight;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

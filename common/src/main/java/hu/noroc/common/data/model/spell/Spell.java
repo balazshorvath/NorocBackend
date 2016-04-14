@@ -5,10 +5,12 @@ package hu.noroc.common.data.model.spell;
  * Created by Oryk on 4/1/2016.
  */
 public class Spell {
-    private String id;
-    private double radius, alpha;
-    private SpellCost cost;
-    private SpellEffect effect;
+    protected String id;
+    protected double radius, alpha;
+    protected long cooldown;
+    protected long castTime;
+    protected SpellCost cost;
+    protected SpellEffect effect;
 
     public String getId() {
         return id;
@@ -48,5 +50,21 @@ public class Spell {
 
     public void setAlpha(double alpha) {
         this.alpha = alpha;
+    }
+
+    public long getCooldown() {
+        return cooldown;
+    }
+
+    public void setCooldown(long cooldown) {
+        this.cooldown = cooldown;
+    }
+
+    public long getCastTime() {
+        return castTime;
+    }
+
+    public void setCastTime(long castTime) {
+        this.castTime = castTime;
     }
 }

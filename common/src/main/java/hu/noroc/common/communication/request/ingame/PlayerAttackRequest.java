@@ -8,19 +8,27 @@ import hu.noroc.common.communication.request.Request;
  * Created by Oryk on 3/28/2016.
  */
 public class PlayerAttackRequest extends Request {
-    private String targetId;
+    private double x, y;
     private String spellId;
 
     public PlayerAttackRequest() {
         this.type = PlayerAttackRequest.class.getSimpleName();
     }
 
-    public String getTargetId() {
-        return targetId;
+    public double getX() {
+        return x;
     }
 
-    public void setTargetId(String targetId) {
-        this.targetId = targetId;
+    public void setX(double x) {
+        this.x = x;
+    }
+
+    public double getY() {
+        return y;
+    }
+
+    public void setY(double y) {
+        this.y = y;
     }
 
     public String getSpellId() {

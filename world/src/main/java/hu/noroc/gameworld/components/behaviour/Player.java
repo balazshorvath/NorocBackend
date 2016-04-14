@@ -1,6 +1,7 @@
 package hu.noroc.gameworld.components.behaviour;
 
 import hu.noroc.common.communication.request.Request;
+import hu.noroc.common.communication.request.ingame.*;
 import hu.noroc.common.data.model.character.CharacterClass;
 import hu.noroc.common.data.model.character.CharacterStat;
 import hu.noroc.common.data.model.character.PlayerCharacter;
@@ -10,7 +11,9 @@ import hu.noroc.gameworld.Area;
 import hu.noroc.gameworld.World;
 import hu.noroc.gameworld.messaging.EventMessage;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Oryk on 4/3/2016.
@@ -19,14 +22,19 @@ public class Player implements Being {
     private PlayerCharacter character;
     private CharacterClass characterClass;
     private CharacterStat stats;
-    private List<Spell> effects;
+    private List<SpellEffect> effects = new ArrayList<>();
 
     private double x, y;
     private Area area;
     private World world;
     private double viewDist;
 
+    private long nextCast;
 
+
+    public void update(){
+        //TODO: update stats, spells based on items, buffs, debuffs, talents (if there will be such thing)
+    }
 
     @Override
     public void newEvent(EventMessage message) {
@@ -36,18 +44,41 @@ public class Player implements Being {
 
     public void clientRequest(Request request){
         //TODO: validate, transform into EventMessage, put into areaMessenger, act as expected
+        if(effects.stream().anyMatch(spellEffect -> spellEffect.getType() == SpellEffect.SpellType.STUN))
+            return;
+        if (request instanceof PlayerAttackRequest){
+            PlayerAttackRequest playerAttackRequest = (PlayerAttackRequest) request;
+            if(!characterClass.getSpells().contains(playerAttackRequest.getSpellId()))
+                return;
+            long current = System.currentTimeMillis();
+            if(current < nextCast)
+                return;
+            nextCast = current + spell.getCastTime();
+        }else if (request instanceof PlayerInteractRequest){
+            PlayerInteractRequest playerInteractRequest = (PlayerInteractRequest) request;
+
+        }else if (request instanceof PlayerMoveRequest){
+            PlayerMoveRequest playerMoveRequest = (PlayerMoveRequest) request;
+
+        }else if (request instanceof PlayerEquipRequest){
+            PlayerEquipRequest playerEquipRequest = (PlayerEquipRequest) request;
+
+        }else if(request instanceof InitRequest){
+            InitRequest initRequest = (InitRequest) request;
+
+        }
     }
 
     @Override
     public void attacked(SpellEffect effect, Being caster) {
         //TODO: subtype, send event to client
-        switch (effect.getMainType()){
-            case ATTACK:
-                CharacterStat damageStats = effect.getMainStats();
+        switch (effect.getType()){
+            case DAMAGE:
+                CharacterStat damageStats = effect.getStat();
                 if(!(caster instanceof Player)){
-                    if (effect.getMainDamageType() == SpellEffect.DamageType.PHYSICAL)
+                    if (effect.getDamageType() == SpellEffect.DamageType.PHYSICAL)
                         this.stats.health -= damageStats.health -this.stats.armor;
-                    else if (effect.getMainDamageType() == SpellEffect.DamageType.MAGIC)
+                    else if (effect.getDamageType() == SpellEffect.DamageType.MAGIC)
                         this.stats.health -= damageStats.health - this.stats.magicResist;
                 }else if(effect.isMixed()){
                     // This is not the proper, or final way to do it.
@@ -63,6 +94,8 @@ public class Player implements Being {
             case DOT:
                 break;
             case HOT:
+                break;
+            case STUN:
                 break;
         }
     }
@@ -175,5 +208,13 @@ public class Player implements Being {
 
     public void setViewDist(double viewDist) {
         this.viewDist = viewDist;
+    }
+
+    public Map<String, Spell> getPlayerSpells() {
+        return playerSpells;
+    }
+
+    public void setPlayerSpells(Map<String, Spell> playerSpells) {
+        this.playerSpells = playerSpells;
     }
 }

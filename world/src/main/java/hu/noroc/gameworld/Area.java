@@ -1,5 +1,6 @@
 package hu.noroc.gameworld;
 
+import hu.noroc.common.communication.message.EntityType;
 import hu.noroc.gameworld.components.behaviour.Player;
 import hu.noroc.gameworld.components.scripting.ScriptedNPC;
 import hu.noroc.gameworld.messaging.EventMessage;
@@ -68,7 +69,7 @@ public class Area {
 
     }
 
-    public void applySpell(AttackEvent event){
+    private void applySpell(AttackEvent event) {
         final double xp = event.getBeing().getX();
         final double yp = event.getBeing().getY();
 
@@ -81,21 +82,39 @@ public class Area {
 
         //TODO: Consider parallel execution (search->applySpell), while the entity calcs the damage
         // npcs.parallelStream();
-        npcs.forEach(scriptedNPC -> {
-            // Target - Entity
-            double xpt = scriptedNPC.getEntity().getX() - xp;
-            double absVecpt = Math.sqrt((xpt + scriptedNPC.getEntity().getY() - yp));
+        if (event.getEntity() == EntityType.PLAYER) {
+            npcs.forEach(scriptedNPC -> {
+                // Target - Entity
+                double xpt = scriptedNPC.getEntity().getX() - xp;
+                double absVecpt = Math.sqrt((xpt + scriptedNPC.getEntity().getY() - yp));
 
-            if (absVecpt > r)
-                return;
-            if (as == 180.0)
-                return;
+                if (absVecpt > r)
+                    return;
+                if (as == 180.0)
+                    return;
 
-            double apt = Math.acos(xpt / absVecpt);
+                double apt = Math.acos(xpt / absVecpt);
 
-            if((apt <= (ad + as)) && ((ad - as) <= apt))
-                scriptedNPC.getEntity().attacked(event.getEffect(), event.getBeing());
-        });
+                if ((apt <= (ad + as)) && ((ad - as) <= apt))
+                    scriptedNPC.getEntity().attacked(event.getEffect(), event.getBeing());
+            });
+        }else{
+            players.forEach(player -> {
+                // Target - Entity
+                double xpt = player.getX() - xp;
+                double absVecpt = Math.sqrt((xpt + player.getY() - yp));
+
+                if (absVecpt > r)
+                    return;
+                if (as == 180.0)
+                    return;
+
+                double apt = Math.acos(xpt / absVecpt);
+
+                if ((apt <= (ad + as)) && ((ad - as) <= apt))
+                    player.attacked(event.getEffect(), event.getBeing());
+            });
+        }
     }
 
     public void newMessage(EventMessage message){

@@ -10,26 +10,20 @@ import hu.noroc.common.data.model.character.CharacterStat;
  * Created by Oryk on 4/1/2016.
  */
 public class SpellEffect {
-    private CharacterStat mainStats;
-    private SpellType mainType;
-    private DamageType mainDamageType;
+    private CharacterStat stat;
+    private SpellType type;
+    private DamageType damageType;
 
-    private CharacterStat subStats;
-    private SpellType subtype;
-    private DamageType subDamageType;
     private boolean mixed;
 
-    /*For HOTs and DOTs*/
+    /*For stuns, HOTs and DOTs*/
     private long duration;
     private int period;
 
     public SpellEffect(SpellEffect spellEffect) {
-        this.mainStats = spellEffect.mainStats.copy();
-        this.mainType = spellEffect.mainType;
-        this.mainDamageType = spellEffect.mainDamageType;
-        this.subStats = spellEffect.subStats.copy();
-        this.subtype = spellEffect.subtype;
-        this.subDamageType = spellEffect.subDamageType;
+        this.stat = spellEffect.stat.copy();
+        this.type = spellEffect.type;
+        this.damageType = spellEffect.damageType;
         this.mixed = spellEffect.mixed;
         this.duration = spellEffect.duration;
         this.period = spellEffect.period;
@@ -46,44 +40,30 @@ public class SpellEffect {
         DOT,
         HOT,
 
-        ATTACK,
-        HEAL
+        DAMAGE,
+        HEAL,
+
+        STUN
     }
     public enum DamageType{
         MAGIC,
         PHYSICAL
     }
 
-    public CharacterStat getMainStats() {
-        return mainStats.copy();
+    public CharacterStat getStat() {
+        return stat.copy();
     }
 
-    public void setMainStats(CharacterStat mainStats) {
-        this.mainStats = mainStats;
+    public void setStat(CharacterStat stat) {
+        this.stat = stat;
     }
 
-    public SpellType getMainType() {
-        return mainType;
+    public SpellType getType() {
+        return type;
     }
 
-    public void setMainType(SpellType mainType) {
-        this.mainType = mainType;
-    }
-
-    public CharacterStat getSubStats() {
-        return subStats.copy();
-    }
-
-    public void setSubStats(CharacterStat subStats) {
-        this.subStats = subStats;
-    }
-
-    public SpellType getSubtype() {
-        return subtype;
-    }
-
-    public void setSubtype(SpellType subtype) {
-        this.subtype = subtype;
+    public void setType(SpellType type) {
+        this.type = type;
     }
 
     public boolean isMixed() {
@@ -110,19 +90,11 @@ public class SpellEffect {
         this.duration = duration;
     }
 
-    public DamageType getMainDamageType() {
-        return mainDamageType;
+    public DamageType getDamageType() {
+        return damageType;
     }
 
-    public void setMainDamageType(DamageType mainDamageType) {
-        this.mainDamageType = mainDamageType;
-    }
-
-    public DamageType getSubDamageType() {
-        return subDamageType;
-    }
-
-    public void setSubDamageType(DamageType subDamageType) {
-        this.subDamageType = subDamageType;
+    public void setDamageType(DamageType damageType) {
+        this.damageType = damageType;
     }
 }

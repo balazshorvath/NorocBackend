@@ -1,11 +1,19 @@
 package hu.noroc.entry.network;
 
-import hu.noroc.common.communication.message.standard.SimpleMessage;
+import hu.noroc.common.communication.request.pregame.ChooseCharacterRequest;
+import hu.noroc.common.communication.response.ListCharacterResponse;
+import hu.noroc.common.communication.response.ListWorldsResponse;
+import hu.noroc.common.communication.response.LoginResponse;
+import hu.noroc.common.communication.response.standard.SimpleResponse;
 import hu.noroc.common.communication.request.Request;
+import hu.noroc.common.communication.request.pregame.LoginRequest;
 import hu.noroc.common.data.model.user.User;
+import hu.noroc.common.mongodb.NorocDB;
 import hu.noroc.entry.NetworkData;
 import hu.noroc.entry.NorocEntry;
 import hu.noroc.entry.security.SecurityUtils;
+import hu.noroc.gameworld.World;
+import org.bson.types.ObjectId;
 import org.codehaus.jackson.map.ObjectMapper;
 import sun.security.rsa.RSAPublicKeyImpl;
 
@@ -13,6 +21,7 @@ import java.io.*;
 import java.net.Socket;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.stream.Collectors;
 
 /**
  * Created by Oryk on 4/13/2016.
@@ -22,8 +31,6 @@ public class GamingClient extends Client implements Runnable {
         super(socket, session, user);
     }
 
-    public GamingClient() {
-    }
     public void initRSA(){
         byte[] buffer = new byte[1024];
         try {
@@ -45,14 +52,18 @@ public class GamingClient extends Client implements Runnable {
     @Override
     public void run() {
         BufferedReader reader;
+        BufferedWriter writer;
         ObjectMapper mapper = new ObjectMapper();
         initRSA();
         if(!online)
             return;
         try {
-            new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())).write(
-                    mapper.writeValueAsString(new SimpleMessage(100))
+            writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+            writer.write(
+                    mapper.writeValueAsString(new SimpleResponse(100))
             );
+            writer.write("\n");
+            writer.flush();
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         } catch (IOException e) {
             return;
@@ -75,7 +86,16 @@ public class GamingClient extends Client implements Runnable {
             if(!"".equals(characterId)){
                 NorocEntry.worlds.get(this.worldId).newClientRequest(request);
             }else{
-                preGame(request);
+                SimpleResponse response = preGame(request);
+                try {
+                    writer.write(NetworkData.rsaData(
+                            mapper.writeValueAsString(response),
+                            clientPublic
+                    ));
+                    writer.write("\n");
+                    writer.flush();
+                } catch (IOException ignored) {
+                }
             }
         }
 
@@ -84,16 +104,53 @@ public class GamingClient extends Client implements Runnable {
         } catch (IOException ignored) {
         }
     }
-    private void preGame(Request request){
+
+    private SimpleResponse preGame(Request request){
         switch (request.getType()){
-            case "LoginRequest":
-                break;
+            case "LoginRequest": {
+                LoginRequest loginRequest = (LoginRequest) request;
+                user = NorocDB.getInstance().getUserRepo().login(loginRequest.getUsername(), loginRequest.getPassword());
+                if(user == null)
+                    return new SimpleResponse(SimpleResponse.LOGIN_FAILED);
+                this.session = new ObjectId().toString();
+                return new LoginResponse(this.session);
+            }
             case "ListWorldsRequest":
-                break;
+                if(user == null)
+                    return new SimpleResponse(SimpleResponse.NOT_AUTHENTICATED_ERROR, "You need to login first!");
+                return new ListWorldsResponse(
+                        NorocEntry.worlds.entrySet().stream().map(
+                                world -> new ListWorldsResponse.WorldData(
+                                        world.getKey(),
+                                        world.getValue().getName(),
+                                        world.getValue().getMaxPlayers(),
+                                        world.getValue().getPlayerCount()
+                                )
+                        ).collect(Collectors.toList())
+                );
             case "ListCharactersRequest":
-                break;
+                if(user == null)
+                    return new SimpleResponse(SimpleResponse.NOT_AUTHENTICATED_ERROR, "You need to login first!");
+                try {
+                    return new ListCharacterResponse(
+                            NorocDB.getInstance().getCharacterRepo().findByUser(user.getId())
+                    );
+                } catch (IOException e) {
+                    return new SimpleResponse(SimpleResponse.INTERNAL_ERROR);
+                }
             case "ChooseCharacterRequest":
-                break;
+                if(user == null)
+                    return new SimpleResponse(SimpleResponse.NOT_AUTHENTICATED_ERROR, "You need to login first!");
+                World world = NorocEntry.worlds.get(((ChooseCharacterRequest)request).getWorldId());
+                if(world == null)
+                    return new SimpleResponse(SimpleResponse.INVALID_REQUEST);
+                try {
+                    world.loginCharacter((ChooseCharacterRequest) request, user.getId());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return new SimpleResponse(SimpleResponse.SUCCESS);
         }
+        return null;
     }
 }

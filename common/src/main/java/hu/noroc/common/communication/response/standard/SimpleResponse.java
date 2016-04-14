@@ -1,20 +1,26 @@
-package hu.noroc.common.communication.message.standard;
+package hu.noroc.common.communication.response.standard;
 
 /**
  * Created by Oryk on 4/13/2016.
  */
-public class SimpleMessage {
+public class SimpleResponse {
+    public static final int LOGIN_FAILED = 210;
+    public static final int INTERNAL_ERROR = 200;
+    public static final int INVALID_REQUEST = 201;
+    public static final int NOT_AUTHENTICATED_ERROR = 211;
+    public static final int SUCCESS = 100;
+
     private int code;
     private String message;
 
-    public SimpleMessage() {
+    public SimpleResponse() {
     }
 
-    public SimpleMessage(int code) {
+    public SimpleResponse(int code) {
         this.code = code;
     }
 
-    public SimpleMessage(int code, String message) {
+    public SimpleResponse(int code, String message) {
         this.code = code;
         this.message = message;
     }

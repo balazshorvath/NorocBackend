@@ -1,10 +1,13 @@
 package hu.noroc.common.data.model.character;
 
 import hu.noroc.common.data.model.InventoryItem;
+import hu.noroc.common.data.model.spell.CharacterSpell;
 import org.bson.types.ObjectId;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Oryk on 1/11/2016.
@@ -16,6 +19,7 @@ public class PlayerCharacter {
     private Long classId;
     private long xp = 0;
     private List<InventoryItem> inventory = new ArrayList<>();
+    private Map<String, CharacterSpell> spells = new HashMap<>();
 
     public PlayerCharacter() {
     }
