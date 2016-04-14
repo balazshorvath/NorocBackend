@@ -27,7 +27,7 @@ public class NorocEntry {
 
     private static NorocDB database;
     public static final Map<String, Client> clients = new HashMap<>();
-    private static final Map<String, World> worlds = new HashMap<>();
+    public static final Map<String, World> worlds = new HashMap<>();
 
     private static Thread tcpServer;
     private static Map<String, Thread> worldListeners = new HashMap<>();
@@ -82,12 +82,12 @@ public class NorocEntry {
                     msg = world.getSyncMessage();
                     client = clients.get(msg.getSession());
                     stream = client.getSocket().getOutputStream();
-                    stream.write(NetworkData.prepareRSAData(
+                    stream.write(NetworkData.rsaData(
                             mapper.writeValueAsString(
                                     NetworkData.getFromEvent(msg.getMessage())
                             ),
                             client.getKey().getPublic()
-                    ));
+                    ).getBytes("UTF-8"));
                     stream.flush();
                 }catch(NullPointerException | IOException e){
                     LOGGER.info("getWorldListener exception.");
