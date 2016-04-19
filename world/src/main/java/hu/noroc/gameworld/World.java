@@ -79,12 +79,11 @@ public class World {
         player.setName(playerCharacter.getName());
         player.setWorld(this);
 
-
+        player.update();
 
         players.put(player.getId(), player);
 
         putPlayerToArea(player);
-
     }
 
     public static World initWorld(WorldConfig config){

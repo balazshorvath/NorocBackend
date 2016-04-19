@@ -20,7 +20,7 @@ public interface Being {
 
     /* The reason, why the params have SpellEffect, is because otherwise the damage calc for ex. wouldn't be OK */
     void attacked(SpellEffect effect, Being caster);
-    List<Spell> getEffects();
+    List<SpellEffect> getEffects();
 
     CharacterStat getStats();
     void setStats(CharacterStat stats);

@@ -7,7 +7,7 @@ import hu.noroc.common.mongodb.MongoDBRepo;
 /**
  * Created by Oryk on 4/1/2016.
  */
-public class CharacterClassRepo extends MongoDBRepo<CharacterClass, Long> {
+public class CharacterClassRepo extends MongoDBRepo<CharacterClass, String> {
     public CharacterClassRepo(MongoDatabase database) {
         super(database);
     }

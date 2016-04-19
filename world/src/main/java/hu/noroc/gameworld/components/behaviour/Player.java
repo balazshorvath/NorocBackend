@@ -5,32 +5,35 @@ import hu.noroc.common.communication.request.ingame.*;
 import hu.noroc.common.data.model.character.CharacterClass;
 import hu.noroc.common.data.model.character.CharacterStat;
 import hu.noroc.common.data.model.character.PlayerCharacter;
-import hu.noroc.common.data.model.spell.Spell;
+import hu.noroc.common.data.model.spell.CharacterSpell;
 import hu.noroc.common.data.model.spell.SpellEffect;
 import hu.noroc.gameworld.Area;
 import hu.noroc.gameworld.World;
+import hu.noroc.gameworld.messaging.EntityActivityType;
 import hu.noroc.gameworld.messaging.EventMessage;
+import hu.noroc.gameworld.messaging.directional.AttackEvent;
+import hu.noroc.gameworld.messaging.directional.DirectionalEvent;
+import hu.noroc.gameworld.messaging.sync.SyncMessage;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by Oryk on 4/3/2016.
  */
 public class Player implements Being {
+    private String session;
     private PlayerCharacter character;
     private CharacterClass characterClass;
     private CharacterStat stats;
     private List<SpellEffect> effects = new ArrayList<>();
 
-    private double x, y;
     private Area area;
     private World world;
     private double viewDist;
 
     private long nextCast;
-
+    private double[][] movement;
 
     public void update(){
         //TODO: update stats, spells based on items, buffs, debuffs, talents (if there will be such thing)
@@ -38,8 +41,7 @@ public class Player implements Being {
 
     @Override
     public void newEvent(EventMessage message) {
-        //TODO
-        //world.messageClient(new SyncMessage());
+        world.newSyncMessage(new SyncMessage(session, message));
     }
 
     public void clientRequest(Request request){
@@ -48,18 +50,41 @@ public class Player implements Being {
             return;
         if (request instanceof PlayerAttackRequest){
             PlayerAttackRequest playerAttackRequest = (PlayerAttackRequest) request;
-            if(!characterClass.getSpells().contains(playerAttackRequest.getSpellId()))
+            CharacterSpell spell;
+            if((spell = character.getSpells().get(playerAttackRequest.getSpellId())) == null)
                 return;
             long current = System.currentTimeMillis();
             if(current < nextCast)
                 return;
+            if(current < spell.getNextCast())
+                return;
             nextCast = current + spell.getCastTime();
+            spell.setNextCast(current);
+
+            AttackEvent event = new AttackEvent();
+            event.setEffect(spell.getEffect());
+            event.setSpell(spell);
+            event.setActivity(EntityActivityType.ATTACK);
+            event.setBeing(this);
+            event.setX(event.getX());
+            event.setY(event.getY());
+
+            area.newMessage(event);
+            world.newSyncMessage(new SyncMessage(session, event));
         }else if (request instanceof PlayerInteractRequest){
             PlayerInteractRequest playerInteractRequest = (PlayerInteractRequest) request;
+
+            //TODO
 
         }else if (request instanceof PlayerMoveRequest){
             PlayerMoveRequest playerMoveRequest = (PlayerMoveRequest) request;
 
+            this.movement = playerMoveRequest.getPath();
+
+            DirectionalEvent event = new DirectionalEvent();
+            event.setX(playerMoveRequest.getPath()[0][0]);
+            event.setY(playerMoveRequest.getPath()[0][1]);
+            event.setDirectionalType(DirectionalEvent.DirectionalType.MOVING_TO);
         }else if (request instanceof PlayerEquipRequest){
             PlayerEquipRequest playerEquipRequest = (PlayerEquipRequest) request;
 
@@ -126,12 +151,12 @@ public class Player implements Being {
 
     @Override
     public String getId() {
-        return character.getId();
+        return session;
     }
 
     @Override
     public void setId(String id) {
-        character.setId(id);
+        session = id;
     }
 
     @Override
@@ -146,22 +171,22 @@ public class Player implements Being {
 
     @Override
     public double getX() {
-        return x;
+        return character.getX();
     }
 
     @Override
     public void setX(double x) {
-        this.x = x;
+        this.character.setX(x);
     }
 
     @Override
     public double getY() {
-        return y;
+        return character.getY();
     }
 
     @Override
     public void setY(double y) {
-        this.y = y;
+        this.character.setY(y);
     }
 
     @Override
@@ -186,11 +211,11 @@ public class Player implements Being {
 
     @Override
     public boolean isInside(double x, double y) {
-        return ((x - this.x)*(x - this.x) + (y - this.y)*(y - this.y)) < viewDist;
+        return ((x - this.character.getX())*(x - this.character.getX()) + (y - this.character.getY())*(y - this.character.getY())) < viewDist;
     }
 
     @Override
-    public List<Spell> getEffects() {
+    public List<SpellEffect> getEffects() {
         return effects;
     }
 
@@ -210,11 +235,23 @@ public class Player implements Being {
         this.viewDist = viewDist;
     }
 
-    public Map<String, Spell> getPlayerSpells() {
-        return playerSpells;
+    public void setEffects(List<SpellEffect> effects) {
+        this.effects = effects;
     }
 
-    public void setPlayerSpells(Map<String, Spell> playerSpells) {
-        this.playerSpells = playerSpells;
+    public long getNextCast() {
+        return nextCast;
+    }
+
+    public void setNextCast(long nextCast) {
+        this.nextCast = nextCast;
+    }
+
+    public double[][] getMovement() {
+        return movement;
+    }
+
+    public void setMovement(double[][] movement) {
+        this.movement = movement;
     }
 }

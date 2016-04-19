@@ -16,15 +16,17 @@ public class PlayerCharacter {
     private String id = new ObjectId().toString();
     private String name;
     private String userId;
-    private Long classId;
+    private String classId;
     private long xp = 0;
     private List<InventoryItem> inventory = new ArrayList<>();
     private Map<String, CharacterSpell> spells = new HashMap<>();
 
+    private double x, y;
+
     public PlayerCharacter() {
     }
 
-    public PlayerCharacter(String name, String userId, Long classId) {
+    public PlayerCharacter(String name, String userId, String classId) {
         this.name = name;
         this.userId = userId;
         this.classId = classId;
@@ -54,11 +56,11 @@ public class PlayerCharacter {
         this.userId = userId;
     }
 
-    public Long getClassId() {
+    public String getClassId() {
         return classId;
     }
 
-    public void setClassId(Long classId) {
+    public void setClassId(String classId) {
         this.classId = classId;
     }
 
@@ -80,5 +82,29 @@ public class PlayerCharacter {
 
     public void setInventory(List<InventoryItem> inventory) {
         this.inventory = inventory;
+    }
+
+    public Map<String, CharacterSpell> getSpells() {
+        return spells;
+    }
+
+    public void setSpells(Map<String, CharacterSpell> spells) {
+        this.spells = spells;
+    }
+
+    public double getX() {
+        return x;
+    }
+
+    public void setX(double x) {
+        this.x = x;
+    }
+
+    public double getY() {
+        return y;
+    }
+
+    public void setY(double y) {
+        this.y = y;
     }
 }
