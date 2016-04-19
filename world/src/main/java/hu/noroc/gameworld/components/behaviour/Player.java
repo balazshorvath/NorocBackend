@@ -35,6 +35,10 @@ public class Player implements Being {
     private long nextCast;
     private double[][] movement;
 
+    public void run() {
+        //TODO: listen for buff durations, spell cast times
+    }
+
     public void update(){
         //TODO: update stats, spells based on items, buffs, debuffs, talents (if there will be such thing)
     }
