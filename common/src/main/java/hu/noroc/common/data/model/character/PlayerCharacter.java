@@ -81,4 +81,12 @@ public class PlayerCharacter {
     public void setInventory(List<InventoryItem> inventory) {
         this.inventory = inventory;
     }
+
+    public Map<String, CharacterSpell> getSpells() {
+        return spells;
+    }
+
+    public void setSpells(Map<String, CharacterSpell> spells) {
+        this.spells = spells;
+    }
 }

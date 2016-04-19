@@ -5,6 +5,7 @@ import hu.noroc.common.communication.request.ingame.*;
 import hu.noroc.common.data.model.character.CharacterClass;
 import hu.noroc.common.data.model.character.CharacterStat;
 import hu.noroc.common.data.model.character.PlayerCharacter;
+import hu.noroc.common.data.model.spell.CharacterSpell;
 import hu.noroc.common.data.model.spell.Spell;
 import hu.noroc.common.data.model.spell.SpellEffect;
 import hu.noroc.gameworld.Area;
@@ -31,6 +32,9 @@ public class Player implements Being {
 
     private long nextCast;
 
+    public void run() {
+        //TODO: listen for buff durations, spell cast times
+    }
 
     public void update(){
         //TODO: update stats, spells based on items, buffs, debuffs, talents (if there will be such thing)
@@ -48,12 +52,14 @@ public class Player implements Being {
             return;
         if (request instanceof PlayerAttackRequest){
             PlayerAttackRequest playerAttackRequest = (PlayerAttackRequest) request;
-            if(!characterClass.getSpells().contains(playerAttackRequest.getSpellId()))
+            if(!character.getSpells().containsKey(playerAttackRequest.getSpellId()))
                 return;
             long current = System.currentTimeMillis();
             if(current < nextCast)
                 return;
+            CharacterSpell spell = character.getSpells().get(playerAttackRequest.getSpellId());
             nextCast = current + spell.getCastTime();
+
         }else if (request instanceof PlayerInteractRequest){
             PlayerInteractRequest playerInteractRequest = (PlayerInteractRequest) request;
 
@@ -190,7 +196,7 @@ public class Player implements Being {
     }
 
     @Override
-    public List<Spell> getEffects() {
+    public List<SpellEffect> getEffects() {
         return effects;
     }
 
@@ -210,11 +216,4 @@ public class Player implements Being {
         this.viewDist = viewDist;
     }
 
-    public Map<String, Spell> getPlayerSpells() {
-        return playerSpells;
-    }
-
-    public void setPlayerSpells(Map<String, Spell> playerSpells) {
-        this.playerSpells = playerSpells;
-    }
 }
