@@ -13,10 +13,12 @@ public class ListCharacterResponse extends SimpleResponse {
 
     public ListCharacterResponse() {
         super(SUCCESS);
+        super.type = "ListCharacterResponse";
     }
 
     public ListCharacterResponse(List<PlayerCharacter> characters) {
         super(SUCCESS);
+        super.type = "ListCharacterResponse";
         this.characters = characters;
     }
 

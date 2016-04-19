@@ -4,9 +4,11 @@ import hu.noroc.common.communication.request.pregame.ChooseCharacterRequest;
 import hu.noroc.common.communication.response.ListCharacterResponse;
 import hu.noroc.common.communication.response.ListWorldsResponse;
 import hu.noroc.common.communication.response.LoginResponse;
+import hu.noroc.common.communication.response.standard.ErrorResponse;
 import hu.noroc.common.communication.response.standard.SimpleResponse;
 import hu.noroc.common.communication.request.Request;
 import hu.noroc.common.communication.request.pregame.LoginRequest;
+import hu.noroc.common.communication.response.standard.SuccessResponse;
 import hu.noroc.common.data.model.user.User;
 import hu.noroc.common.mongodb.NorocDB;
 import hu.noroc.entry.NetworkData;
@@ -60,7 +62,7 @@ public class GamingClient extends Client implements Runnable {
         try {
             writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             writer.write(
-                    mapper.writeValueAsString(new SimpleResponse(100))
+                    mapper.writeValueAsString(new SuccessResponse())
             );
             writer.write("\n");
             writer.flush();
@@ -111,13 +113,13 @@ public class GamingClient extends Client implements Runnable {
                 LoginRequest loginRequest = (LoginRequest) request;
                 user = NorocDB.getInstance().getUserRepo().login(loginRequest.getUsername(), loginRequest.getPassword());
                 if(user == null)
-                    return new SimpleResponse(SimpleResponse.LOGIN_FAILED);
+                    return new ErrorResponse(SimpleResponse.LOGIN_FAILED);
                 this.session = new ObjectId().toString();
                 return new LoginResponse(this.session);
             }
             case "ListWorldsRequest":
                 if(user == null)
-                    return new SimpleResponse(SimpleResponse.NOT_AUTHENTICATED_ERROR, "You need to login first!");
+                    return new ErrorResponse(SimpleResponse.NOT_AUTHENTICATED_ERROR, "You need to login first!");
                 return new ListWorldsResponse(
                         NorocEntry.worlds.entrySet().stream().map(
                                 world -> new ListWorldsResponse.WorldData(
@@ -130,26 +132,26 @@ public class GamingClient extends Client implements Runnable {
                 );
             case "ListCharactersRequest":
                 if(user == null)
-                    return new SimpleResponse(SimpleResponse.NOT_AUTHENTICATED_ERROR, "You need to login first!");
+                    return new ErrorResponse(SimpleResponse.NOT_AUTHENTICATED_ERROR, "You need to login first!");
                 try {
                     return new ListCharacterResponse(
                             NorocDB.getInstance().getCharacterRepo().findByUser(user.getId())
                     );
                 } catch (IOException e) {
-                    return new SimpleResponse(SimpleResponse.INTERNAL_ERROR);
+                    return new ErrorResponse();
                 }
             case "ChooseCharacterRequest":
                 if(user == null)
-                    return new SimpleResponse(SimpleResponse.NOT_AUTHENTICATED_ERROR, "You need to login first!");
+                    return new ErrorResponse(SimpleResponse.NOT_AUTHENTICATED_ERROR, "You need to login first!");
                 World world = NorocEntry.worlds.get(((ChooseCharacterRequest)request).getWorldId());
                 if(world == null)
-                    return new SimpleResponse(SimpleResponse.INVALID_REQUEST);
+                    return new ErrorResponse(SimpleResponse.INVALID_REQUEST);
                 try {
                     world.loginCharacter((ChooseCharacterRequest) request, user.getId());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                return new SimpleResponse(SimpleResponse.SUCCESS);
+                return new SuccessResponse();
         }
         return null;
     }
