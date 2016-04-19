@@ -2,7 +2,11 @@ package hu.noroc.entry.security;
 
 import hu.noroc.entry.network.Client;
 
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import java.io.UnsupportedEncodingException;
 import java.security.*;
 
 /**
@@ -32,17 +36,12 @@ public class SecurityUtils {
          *          :The public key
          * @return Encrypted text
          */
-        public static String encrypt(String text, PublicKey key) {
-            try {
-                // get an RSA cipher object and print the provider
-                final Cipher cipher = Cipher.getInstance("RSA");
-                // encrypt the plain text using the public key
-                cipher.init(Cipher.ENCRYPT_MODE, key);
-                return new String(cipher.doFinal(text.getBytes("UTF-8")));
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
+        public static String encrypt(String text, PublicKey key) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, UnsupportedEncodingException, BadPaddingException, IllegalBlockSizeException {
+            // get an RSA cipher object and print the provider
+            final Cipher cipher = Cipher.getInstance("RSA");
+            // encrypt the plain text using the public key
+            cipher.init(Cipher.ENCRYPT_MODE, key);
+            return new String(cipher.doFinal(text.getBytes("UTF-8")));
         }
 
         /**

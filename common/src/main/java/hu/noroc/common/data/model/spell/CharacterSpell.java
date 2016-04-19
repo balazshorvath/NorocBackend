@@ -2,6 +2,9 @@ package hu.noroc.common.data.model.spell;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by Oryk on 4/14/2016.
  */
@@ -9,29 +12,28 @@ public class CharacterSpell extends Spell {
     /* in-game properties */
     private long nextCast;
     /* upgrading */
-    private String characterId;
     private int upgradesSpent;
-    private SpellEffect[] effects = new SpellEffect[2];
+    private List<SpellEffect> effects = new ArrayList<>();
+
+    public CharacterSpell() {
+    }
+
+    public CharacterSpell(Spell spell) {
+        super(spell);
+    }
 
     @JsonIgnore
     public void setCooldown(long now){
         this.nextCast = now  + this.cooldown;
     }
 
+    @JsonIgnore
     public long getNextCast() {
         return nextCast;
     }
 
     public void setNextCast(long nextCast) {
         this.nextCast = nextCast;
-    }
-
-    public String getCharacterId() {
-        return characterId;
-    }
-
-    public void setCharacterId(String characterId) {
-        this.characterId = characterId;
     }
 
     public int getUpgradesSpent() {
@@ -42,11 +44,11 @@ public class CharacterSpell extends Spell {
         this.upgradesSpent = upgradesSpent;
     }
 
-    public SpellEffect[] getEffects() {
+    public List<SpellEffect> getEffects() {
         return effects;
     }
 
-    public void setEffects(SpellEffect[] effects) {
+    public void setEffects(List<SpellEffect> effects) {
         this.effects = effects;
     }
 }

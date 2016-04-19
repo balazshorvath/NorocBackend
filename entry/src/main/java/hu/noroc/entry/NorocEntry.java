@@ -11,10 +11,14 @@ import hu.noroc.gameworld.messaging.sync.SyncMessage;
 import org.bson.types.ObjectId;
 import org.codehaus.jackson.map.ObjectMapper;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
@@ -89,8 +93,8 @@ public class NorocEntry {
                             client.getKey().getPublic()
                     ).getBytes("UTF-8"));
                     stream.flush();
-                } catch(NullPointerException | IOException e) {
-                    LOGGER.info("getWorldListener exception.");
+                } catch(Exception e) {
+                    LOGGER.info("getWorldListener exception." + e.getMessage());
                 }
             }
         });

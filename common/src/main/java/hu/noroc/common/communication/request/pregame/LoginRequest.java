@@ -15,6 +15,12 @@ public class LoginRequest extends Request {
         this.type = LoginRequest.class.getSimpleName();
     }
 
+    public LoginRequest(String username, String password) {
+        this.type = LoginRequest.class.getSimpleName();
+        this.username = username;
+        this.password = password;
+    }
+
     public String getUsername() {
         return username;
     }

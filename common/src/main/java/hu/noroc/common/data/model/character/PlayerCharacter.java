@@ -64,12 +64,8 @@ public class PlayerCharacter {
         this.classId = classId;
     }
 
-    public Long getXp() {
+    public long getXp() {
         return xp;
-    }
-
-    public void setXp(Long xp) {
-        this.xp = xp;
     }
 
     public void setXp(long xp) {

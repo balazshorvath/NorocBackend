@@ -96,7 +96,7 @@ public class GamingClient extends Client implements Runnable {
                     ));
                     writer.write("\n");
                     writer.flush();
-                } catch (IOException ignored) {
+                } catch (Exception ignored) {
                 }
             }
         }
