@@ -37,6 +37,8 @@ public class NorocEntry {
     private static Thread tcpServer;
     private static Map<String, Thread> worldListeners = new HashMap<>();
 
+    private static boolean running = true;
+
 
     public static void main(String[] args) throws InterruptedException {
         if(args.length < 3 && (args.length % 2) != 1) {
@@ -50,7 +52,10 @@ public class NorocEntry {
             LOGGER.warning("Could not load config file. Closing.");
         }
 
-        database = NorocDB.getInstance(args[0], args[1]);
+        database = NorocDB.getInstance(
+                EntryConfig.getValue("dbUrl"),
+                EntryConfig.getValue("dbName")
+        );
         for(int i = 1; i < args.length; i += 2) {
             WorldConfig config = null;
             World world = null;
@@ -62,7 +67,7 @@ public class NorocEntry {
                 continue;
             }
             world = World.initWorld(config);
-            id = new ObjectId().toString();
+            id = SecurityUtils.randomString(32);
             worlds.put(id, world);
             worldListeners.put(id, getWorldListener(world));
             LOGGER.info("World initialized: " + id);
@@ -70,7 +75,7 @@ public class NorocEntry {
         getTcpServer().start();
         worldListeners.values().parallelStream().forEach(Thread::start);
 
-        while(true){
+        while(running){
             Thread.sleep(1000);
         }
     }
@@ -81,7 +86,7 @@ public class NorocEntry {
             ObjectMapper mapper = new ObjectMapper();
             Client client;
             OutputStream stream;
-            while(true){
+            while(running){
                 try {
                     msg = world.getSyncMessage();
                     client = clients.get(msg.getSession());
@@ -91,10 +96,9 @@ public class NorocEntry {
                                     NetworkData.getFromEvent(msg.getMessage())
                             ),
                             client.getKey().getPublic()
-                    ).getBytes("UTF-8"));
+                    ).getBytes());
                     stream.flush();
-                } catch(Exception e) {
-                    LOGGER.info("getWorldListener exception." + e.getMessage());
+                } catch(Exception ignored) {
                 }
             }
         });
@@ -105,9 +109,11 @@ public class NorocEntry {
             return tcpServer;
         tcpServer = new Thread(() -> {
             String portS = EntryConfig.getValue("port");
-            int port = 63001;
+            int port = 0;
             if(portS != null)
-                port = Integer.getInteger(portS);
+                port = Integer.parseInt(portS);
+            if(port == 0)
+                port = 63001;
 
             ServerSocket server;
             try {
@@ -120,14 +126,14 @@ public class NorocEntry {
             Socket socket;
             GamingClient client;
 
-            while(true){
+            while(running){
                 try {
                     socket = server.accept();
-                    client = new GamingClient(socket, new ObjectId().toString(), null);
+                    client = new GamingClient(socket, SecurityUtils.randomString(32), null);
                     new Thread(client).start();
                     clients.put(client.getSession(), client);
 //                    if(!socket.getInetAddress().isLoopbackAddress()){
-//                        client = new GamingClient(socket, new ObjectId().toString(), null);
+//                        client = new GamingClient(socket, SecurityUtils.randomString(32), null);
 //                        new Thread(client).start();
 //                        clients.put(client.getSession(), client);
 //                    }else{
@@ -137,8 +143,28 @@ public class NorocEntry {
                     LOGGER.warning(e.getMessage());
                 }
             }
+            try {
+                server.close();
+            } catch (IOException ignore) {
+            }
         });
         return tcpServer;
     }
 
+    public static void stopServer() throws InterruptedException {
+        running = false;
+        Thread.sleep(5000);
+        if(!tcpServer.getState().equals(Thread.State.TERMINATED))
+            tcpServer.interrupt();
+
+        worldListeners.values().stream()
+                .filter(thread -> !thread.getState().equals(Thread.State.TERMINATED))
+                .forEach(Thread::interrupt);
+
+        clients.values().forEach(Client::disconnect);
+        Thread.sleep(5000);
+
+        clients.values().stream().filter(client -> !client.getSocket().isClosed()).forEach(Client::forceDisconnect);
+        Thread.sleep(5000);
+    }
 }

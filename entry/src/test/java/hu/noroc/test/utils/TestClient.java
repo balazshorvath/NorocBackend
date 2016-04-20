@@ -35,8 +35,8 @@ public class TestClient {
         socket = new Socket(ip, port);
         generateKey();
 
-        byte[] rsaKey = new byte[1024];
-        socket.getInputStream().read(rsaKey, 0, 1024);
+        byte[] rsaKey = new byte[162];
+        socket.getInputStream().read(rsaKey, 0, 162);
 
         this.serverPublic = new RSAPublicKeyImpl(rsaKey);
         socket.getOutputStream().write(key.getPublic().getEncoded());
@@ -50,7 +50,7 @@ public class TestClient {
         return mapper.readValue(data, SimpleResponse.class);
     }
     public SimpleResponse login(String username, String password) throws Exception {
-        writer.write(SecurityUtils.encrypt(mapper.writeValueAsString(new LoginRequest(username, password)) + "\n", serverPublic));
+        writer.write(SecurityUtils.encrypt(mapper.writeValueAsString(new LoginRequest(username, password)), serverPublic) + "\n");
         writer.flush();
         String data = reader.readLine();
         data = SecurityUtils.decrypt(data, key.getPrivate());

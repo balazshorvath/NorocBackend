@@ -1,5 +1,6 @@
 package hu.noroc.common.data.model.character;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import hu.noroc.common.data.model.InventoryItem;
 import hu.noroc.common.data.model.spell.CharacterSpell;
 import org.bson.types.ObjectId;
@@ -13,7 +14,7 @@ import java.util.Map;
  * Created by Oryk on 1/11/2016.
  */
 public class PlayerCharacter {
-    private String id = new ObjectId().toString();
+    private String id;
     private String name;
     private String userId;
     private String classId;
@@ -32,10 +33,14 @@ public class PlayerCharacter {
         this.classId = classId;
     }
 
+    @org.mongojack.ObjectId
+    @JsonProperty("_id")
     public String getId() {
         return id;
     }
 
+    @org.mongojack.ObjectId
+    @JsonProperty("_id")
     public void setId(String id) {
         this.id = id;
     }

@@ -1,5 +1,7 @@
 package hu.noroc.common.data.model.spell;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.mongojack.ObjectId;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,10 +38,14 @@ public class Spell {
         this.maxUpgrades = spell.maxUpgrades;
     }
 
+    @ObjectId
+    @JsonProperty("_id")
     public String getId() {
         return id;
     }
 
+    @ObjectId
+    @JsonProperty("_id")
     public void setId(String id) {
         this.id = id;
     }

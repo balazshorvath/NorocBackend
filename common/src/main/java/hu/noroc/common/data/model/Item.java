@@ -1,6 +1,8 @@
 package hu.noroc.common.data.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import hu.noroc.common.data.model.character.CharacterStat;
+import org.mongojack.ObjectId;
 
 /**
  * Created by Oryk on 4/1/2016.
@@ -10,10 +12,14 @@ public class Item {
     private String name;
     private CharacterStat stat;
 
+    @ObjectId
+    @JsonProperty("_id")
     public String getId() {
         return id;
     }
 
+    @ObjectId
+    @JsonProperty("_id")
     public void setId(String id) {
         this.id = id;
     }

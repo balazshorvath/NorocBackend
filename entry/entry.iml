@@ -19,8 +19,18 @@
     <orderEntry type="library" name="Gradle: org.codehaus.jackson:jackson-mapper-asl:1.9.13" level="project" />
     <orderEntry type="library" name="Gradle: org.codehaus.jackson:jackson-core-asl:1.9.13" level="project" />
     <orderEntry type="library" name="Gradle: net.jodah:typetools:0.4.0" level="project" />
-    <orderEntry type="library" name="Gradle: org.mongodb:mongo-java-driver:3.0.4" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: junit:junit:4.11" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: org.hamcrest:hamcrest-core:1.3" level="project" />
+    <orderEntry type="library" name="Gradle: org.mongodb:mongodb-driver:3.2.1" level="project" />
+    <orderEntry type="library" name="Gradle: org.mongodb:bson:3.2.1" level="project" />
+    <orderEntry type="library" name="Gradle: org.mongodb:mongodb-driver-core:3.2.1" level="project" />
+    <orderEntry type="library" name="Gradle: com.fasterxml.jackson.core:jackson-databind:2.7.1-1" level="project" />
+    <orderEntry type="library" name="Gradle: commons-io:commons-io:2.4" level="project" />
+    <orderEntry type="library" name="Gradle: de.undercouch:bson4jackson:2.7.0" level="project" />
+    <orderEntry type="library" name="Gradle: com.fasterxml.jackson.core:jackson-annotations:2.7.0" level="project" />
+    <orderEntry type="library" name="Gradle: com.fasterxml.jackson.core:jackson-core:2.7.1" level="project" />
+    <orderEntry type="library" name="Gradle: org.mongojack:mongojack:2.6.0" level="project" />
+    <orderEntry type="library" name="Gradle: javax.persistence:persistence-api:1.0.2" level="project" />
+    <orderEntry type="library" name="Gradle: org.mongodb:mongo-java-driver:3.0.4" level="project" />
   </component>
 </module>

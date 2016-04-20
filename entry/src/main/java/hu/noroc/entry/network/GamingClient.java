@@ -34,15 +34,11 @@ public class GamingClient extends Client implements Runnable {
     }
 
     public void initRSA(){
-        byte[] buffer = new byte[1024];
+        byte[] buffer = new byte[162];
         try {
             SecurityUtils.generateKey(this);
             socket.getOutputStream().write(this.key.getPublic().getEncoded());
-            int bytes = socket.getInputStream().read(buffer, 0, 1024);
-            if(bytes != 1024) {
-                online = false;
-                return;
-            }
+            int bytes = socket.getInputStream().read(buffer, 0, 162);
 
             this.clientPublic = new RSAPublicKeyImpl(buffer);
             this.online = true;
@@ -114,7 +110,7 @@ public class GamingClient extends Client implements Runnable {
                 user = NorocDB.getInstance().getUserRepo().login(loginRequest.getUsername(), loginRequest.getPassword());
                 if(user == null)
                     return new ErrorResponse(SimpleResponse.LOGIN_FAILED);
-                this.session = new ObjectId().toString();
+                this.session = SecurityUtils.randomString(32);
                 return new LoginResponse(this.session);
             }
             case "ListWorldsRequest":

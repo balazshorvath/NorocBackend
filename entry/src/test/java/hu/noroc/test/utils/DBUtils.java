@@ -10,6 +10,7 @@ import hu.noroc.common.data.model.spell.SpellCost;
 import hu.noroc.common.data.model.spell.SpellEffect;
 import hu.noroc.common.data.model.user.User;
 import hu.noroc.common.mongodb.NorocDB;
+import hu.noroc.entry.security.SecurityUtils;
 import hu.noroc.test.utils.common.ArrayListBuilder;
 import org.bson.types.ObjectId;
 
@@ -32,17 +33,16 @@ public class DBUtils {
         User user = new User();
 
         user.setEmail("mail" + userCounter + "@gmail.com");
-        user.setId(new ObjectId().toString());
         user.setUsername("user" + userCounter);
         user.setPassword(
                 new String(
-                        MessageDigest.getInstance("SHA-256").digest("password".getBytes("UTF-8"))
+                        MessageDigest.getInstance("SHA-256").digest("password".getBytes())
                 )
         );
 
-        db.getUserRepo().insert(user);
+        String id = db.getUserRepo().insert(user);
         userCounter++;
-        return user;
+        return db.getUserRepo().findById(id);
     }
 
     public PlayerCharacter createCharacter(String classId, String userId) throws IOException {
@@ -57,7 +57,6 @@ public class DBUtils {
 
         character.setX(0.0);
         character.setY(0.0);
-        character.setId(new ObjectId().toString());
         character.setSpells(
                 spells.stream().collect(
                         Collectors.toMap(
@@ -68,10 +67,10 @@ public class DBUtils {
         );
         character.setXp(0);
 
-        db.getCharacterRepo().insert(character);
+        String id = db.getCharacterRepo().insert(character);
         characterCounter++;
 
-        return character;
+        return db.getCharacterRepo().findById(id);
     }
 
     public static void initClasses() throws IOException {
@@ -126,7 +125,6 @@ public class DBUtils {
         effect.setStat(stat);
 
         // Spell
-        spell.setId(new ObjectId().toString());
         spell.setName("TestSpell");
         // This should be generated: spell.setDescription("");
         // also because of the upgrades (+ effects)
@@ -147,8 +145,8 @@ public class DBUtils {
         spell.setCastTime(0);
         spell.setCost(cost);
 
-        db.getSpellRepo().insert(spell);
-        return spell;
+        String id = db.getSpellRepo().insert(spell);
+        return db.getSpellRepo().findById(id);
     }
 
     public void generateItems(int amount) throws IOException {
@@ -171,7 +169,6 @@ public class DBUtils {
 
             stat.speed = 0.0;
 
-            item.setId(new ObjectId().toString());
             item.setName("TestItem" + itemCounter++);
             item.setStat(stat);
 

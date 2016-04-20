@@ -58,6 +58,18 @@ public class WorldConfig {
         return config;
     }
 
+    public void setMapWidth(double mapWidth) {
+        this.mapWidth = mapWidth;
+    }
+
+    public void setMapHeight(double mapHeight) {
+        this.mapHeight = mapHeight;
+    }
+
+    public void setAreaSize(double areaSize) {
+        this.areaSize = areaSize;
+    }
+
     public List<ScriptedNPC> getScripts(){
         return scripts;
     }

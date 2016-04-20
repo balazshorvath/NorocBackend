@@ -12,4 +12,5 @@ dependencies {
     compile 'net.jodah:typetools:0.4.0'
     compile 'org.mongodb:mongo-java-driver:3.0.4'
     compile 'org.codehaus.jackson:jackson-mapper-asl:1.9.13'
+    compile 'org.mongojack:mongojack:2.6.0'
 }
