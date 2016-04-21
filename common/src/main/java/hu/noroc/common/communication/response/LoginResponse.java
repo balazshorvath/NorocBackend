@@ -10,17 +10,15 @@ public class LoginResponse extends SimpleResponse {
 
     public LoginResponse() {
         super(SUCCESS);
+        super.type = "LoginResponse";
     }
 
     public LoginResponse(String session) {
         super(SUCCESS);
+        super.type = "LoginResponse";
         this.session = session;
     }
 
-    public LoginResponse(int code, String session) {
-        super(code);
-        this.session = session;
-    }
 
     public String getSession() {
         return session;

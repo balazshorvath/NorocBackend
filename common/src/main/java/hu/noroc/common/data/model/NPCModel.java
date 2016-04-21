@@ -1,6 +1,8 @@
 package hu.noroc.common.data.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import hu.noroc.common.data.model.character.CharacterStat;
+import org.mongojack.ObjectId;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,10 +17,14 @@ public class NPCModel {
     private Map<String, String> scriptParams = new HashMap<>();
     private CharacterStat stats;
 
+    @ObjectId
+    @JsonProperty("_id")
     public String getId() {
         return id;
     }
 
+    @ObjectId
+    @JsonProperty("_id")
     public void setId(String id) {
         this.id = id;
     }

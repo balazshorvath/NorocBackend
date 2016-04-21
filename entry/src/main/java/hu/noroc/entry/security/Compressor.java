@@ -19,9 +19,9 @@ public class Compressor {
             result = new ByteArrayOutputStream();
             gzip = new GZIPOutputStream(result);
 
-            gzip.write(data.getBytes("UTF-8"));
+            gzip.write(data.getBytes());
 
-            return result.toString("UTF-8");
+            return result.toString();
         } catch (IOException e) {
             //TODO: log
             return null;
@@ -36,7 +36,7 @@ public class Compressor {
     public static String gunzip(String data){
         GZIPInputStream gzip = null;
         try {
-            ByteArrayInputStream inputStream = new ByteArrayInputStream(data.getBytes("UTF-8"));
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(data.getBytes());
             gzip = new GZIPInputStream(inputStream);
             InputStreamReader reader = new InputStreamReader(gzip);
 

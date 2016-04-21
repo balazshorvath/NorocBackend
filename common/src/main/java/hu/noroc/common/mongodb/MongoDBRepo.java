@@ -1,10 +1,14 @@
 package hu.noroc.common.mongodb;
 
+import com.mongodb.DB;
+import com.mongodb.DBCollection;
+import com.mongodb.Mongo;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import net.jodah.typetools.TypeResolver;
 import org.bson.Document;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.mongojack.JacksonDBCollection;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -15,12 +19,12 @@ import java.util.List;
  * Created by Oryk on 11/26/2015.
  */
 public class MongoDBRepo<T, ID> implements MongoRepo<T, ID> {
-    protected MongoCollection<Document> collection;
+    protected JacksonDBCollection<T, ID> collection;
     protected ObjectMapper json = new ObjectMapper();
     protected final Class<T> documentClass;
     protected final Class<ID> indexClass;
 
-    public MongoDBRepo(MongoDatabase database){
+    public MongoDBRepo(DB database){
         Class<?>[] typeArguments = TypeResolver.resolveRawArguments(MongoDBRepo.class, getClass());
         this.documentClass = (Class<T>) typeArguments[0];
         this.indexClass = (Class<ID>) typeArguments[1];
@@ -28,45 +32,41 @@ public class MongoDBRepo<T, ID> implements MongoRepo<T, ID> {
         String[] tmp = documentClass.getName().split("\\.");
         String name = tmp[tmp.length - 1];
 
-        collection = database.getCollection(name);
+        collection = JacksonDBCollection.wrap(
+                database.getCollection(documentClass.getSimpleName()),
+                documentClass,
+                indexClass
+        );
 
-        if(collection == null) {
-            database.createCollection(name);
-            collection = database.getCollection(name);
-        }
     }
 
     @Override
     public T findById(ID id) throws IOException {
-        Document tmp = collection.find(new Document("id", id)).first();
-        return json.readValue(tmp.toJson(), documentClass);
+        return collection.findOneById(id);
     }
 
     @Override
     public List<T> findBy(String key, String value) throws IOException {
-        List<T> res = new ArrayList<>();
-        for(Document d : collection.find(new Document(key, value))){
-            res.add(json.readValue(d.toJson(), documentClass));
-        }
-        return res;
+        return collection.find().is(key, value).toArray();
     }
 
     @Override
     public List<T> findAll() throws IOException {
-        List<T> res = new ArrayList<>();
-        for(Document d : collection.find()){
-            res.add(json.readValue(d.toJson(), documentClass));
-        }
-        return res;
+        return collection.find().toArray();
     }
 
     @Override
-    public void insert(T t) throws IOException {
-        collection.insertOne(Document.parse(json.writeValueAsString(t)));
+    public ID insert(T t) throws IOException {
+        return collection.insert(t).getSavedId();
     }
 
     @Override
     public void delete(ID id) {
-        collection.deleteOne(new Document("id", id));
+        collection.removeById(id);
+    }
+
+    @Override
+    public void deleteAll() {
+        collection.drop();
     }
 }

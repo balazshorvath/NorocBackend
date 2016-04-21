@@ -1,6 +1,9 @@
 package hu.noroc.common.data.model.user;
 
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.mongojack.ObjectId;
+
 /**
  * Created by Oryk on 11/26/2015.
  */
@@ -10,10 +13,14 @@ public class User {
     private String email;
     private String password;
 
+    @ObjectId
+    @JsonProperty("_id")
     public String getId() {
         return id;
     }
 
+    @ObjectId
+    @JsonProperty("_id")
     public void setId(String id) {
         this.id = id;
     }

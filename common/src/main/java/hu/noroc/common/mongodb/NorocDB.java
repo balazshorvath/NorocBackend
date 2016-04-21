@@ -1,8 +1,11 @@
 package hu.noroc.common.mongodb;
 
+import com.mongodb.DB;
+import com.mongodb.Mongo;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import hu.noroc.common.data.repository.*;
+import org.mongojack.JacksonDBCollection;
 
 /**
  * Created by Oryk on 12/24/2015.
@@ -15,7 +18,7 @@ public class NorocDB {
     private String pw;
 
     private MongoClient client;
-    private MongoDatabase database;
+    private DB database;
 
     private static NorocDB instance;
 
@@ -61,7 +64,7 @@ public class NorocDB {
 
     private void initialize(){
         client = new MongoClient(url);
-        database = client.getDatabase(db);
+        database = new DB(client, db);
 
         userRepo = new UserRepo(database);
         characterRepo = new CharacterRepo(database);
@@ -94,4 +97,5 @@ public class NorocDB {
     public SpellRepo getSpellRepo() {
         return spellRepo;
     }
+
 }

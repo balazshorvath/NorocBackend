@@ -7,6 +7,12 @@ import hu.noroc.entry.security.SecurityUtils;
 import hu.noroc.gameworld.messaging.EventMessage;
 import hu.noroc.gameworld.messaging.directional.DirectionalEvent;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import java.io.UnsupportedEncodingException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
@@ -15,11 +21,11 @@ import java.security.PublicKey;
  */
 //TODO: I think these can be easily tested, and should be
 public class NetworkData {
-    public static String compressAndRSAData(String data, PublicKey key) {
+    public static String compressAndRSAData(String data, PublicKey key) throws NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, UnsupportedEncodingException, InvalidKeyException {
         String result = Compressor.gzip(data);
         return SecurityUtils.encrypt(result, key);
     }
-    public static String rsaData(String data, PublicKey key) {
+    public static String rsaData(String data, PublicKey key) throws NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, UnsupportedEncodingException, InvalidKeyException {
         return SecurityUtils.encrypt(data, key);
     }
     public static String decompressAndRSADecryptData(String data, PrivateKey key) {

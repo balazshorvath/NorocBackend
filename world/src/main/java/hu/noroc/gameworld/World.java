@@ -79,12 +79,11 @@ public class World {
         player.setName(playerCharacter.getName());
         player.setWorld(this);
 
-
+        player.update();
 
         players.put(player.getId(), player);
 
         putPlayerToArea(player);
-
     }
 
     public static World initWorld(WorldConfig config){
@@ -92,6 +91,7 @@ public class World {
         world.mapWidth = config.getMapWidth();
         world.mapHeight = config.getMapHeight();
         world.areaSize = config.getAreaSize();
+        world.name = config.getName();
 
         world.characterRepo = NorocDB.getInstance().getCharacterRepo();
         world.characterClassRepo = NorocDB.getInstance().getCharacterClassRepo();

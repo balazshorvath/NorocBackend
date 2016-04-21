@@ -1,17 +1,35 @@
 package hu.noroc.common.communication.response.standard;
 
+import hu.noroc.common.communication.response.InitResponse;
+import hu.noroc.common.communication.response.ListCharacterResponse;
+import hu.noroc.common.communication.response.ListWorldsResponse;
+import hu.noroc.common.communication.response.LoginResponse;
+import org.codehaus.jackson.annotate.JsonSubTypes;
+import org.codehaus.jackson.annotate.JsonTypeInfo;
+
 /**
  * Created by Oryk on 4/13/2016.
  */
-public class SimpleResponse {
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = InitResponse.class, name = "InitResponse"),
+        @JsonSubTypes.Type(value = ListCharacterResponse.class, name = "ListCharacterResponse"),
+        @JsonSubTypes.Type(value = ListWorldsResponse.class, name = "ListWorldsResponse"),
+        @JsonSubTypes.Type(value = LoginResponse.class, name = "LoginResponse"),
+        /* Empty responses */
+        @JsonSubTypes.Type(value = SuccessResponse.class, name = "SuccessResponse"),
+        @JsonSubTypes.Type(value = ErrorResponse.class, name = "ErrorResponse")
+})
+public abstract class SimpleResponse {
     public static final int LOGIN_FAILED = 210;
     public static final int INTERNAL_ERROR = 200;
     public static final int INVALID_REQUEST = 201;
     public static final int NOT_AUTHENTICATED_ERROR = 211;
     public static final int SUCCESS = 100;
 
-    private int code;
-    private String message;
+    protected int code;
+    protected String type;
+    protected String message;
 
     public SimpleResponse() {
     }
