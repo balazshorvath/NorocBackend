@@ -81,7 +81,7 @@ public class GamingClient extends Client implements Runnable {
                 continue;
             }
 
-            if(!"".equals(characterId)){
+            if(characterId != null && !"".equals(characterId)){
                 NorocEntry.worlds.get(this.worldId).newClientRequest(request);
             }else{
                 SimpleResponse response = preGame(request);

@@ -1,5 +1,6 @@
 package hu.noroc.test;
 
+import hu.noroc.common.communication.response.ListCharacterResponse;
 import hu.noroc.common.communication.response.LoginResponse;
 import hu.noroc.common.communication.response.standard.SimpleResponse;
 import hu.noroc.common.data.model.user.User;
@@ -21,8 +22,11 @@ public class PreGameTest {
     private User user;
     @Before
     public void setUp() throws Exception {
+        DBUtils.cleanDBs();
         user = DBUtils.createUser();
         DBUtils.initClasses();
+        DBUtils.createCharacter("WARRIOR", user.getId());
+
         user.setPassword("password");
 
         server = new TestServer();
@@ -32,8 +36,12 @@ public class PreGameTest {
     }
 
     @Test
+    public void testPreGame() throws Exception {
+        testLogin();
+        testListings();
+    }
     public void testLogin() throws Exception {
-        SimpleResponse response = client.init("localhost", 50231);
+        SimpleResponse response = client.init("localhost", 1234);
         assertEquals(response.getCode(), SimpleResponse.SUCCESS);
 
         response = client.login("wronguser", "wrongpassword");
@@ -51,8 +59,10 @@ public class PreGameTest {
         client.setSession(((LoginResponse)response).getSession());
     }
 
-    @Test
     public void testListings() throws Exception {
+        SimpleResponse response = client.listCharacters();
+        assertEquals(response.getCode(), SimpleResponse.SUCCESS);
+        assertEquals(((ListCharacterResponse)response).getCharacters().size(), 1);
     }
 
     @After

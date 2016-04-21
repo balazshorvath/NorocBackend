@@ -64,4 +64,9 @@ public class MongoDBRepo<T, ID> implements MongoRepo<T, ID> {
     public void delete(ID id) {
         collection.removeById(id);
     }
+
+    @Override
+    public void deleteAll() {
+        collection.drop();
+    }
 }

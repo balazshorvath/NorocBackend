@@ -1,14 +1,20 @@
 package hu.noroc.test.utils;
 
+import hu.noroc.common.communication.request.pregame.ListCharactersRequest;
 import hu.noroc.common.communication.request.pregame.LoginRequest;
 import hu.noroc.common.communication.response.standard.SimpleResponse;
 import hu.noroc.common.data.model.character.PlayerCharacter;
 import hu.noroc.common.data.model.npc.NPCData;
 import hu.noroc.entry.security.SecurityUtils;
+import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.ObjectMapper;
 import sun.security.rsa.RSAPublicKeyImpl;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import java.io.*;
+import java.net.ResponseCache;
 import java.net.Socket;
 import java.security.*;
 import java.util.List;
@@ -17,7 +23,6 @@ import java.util.List;
  * Created by Oryk on 4/19/2016.
  */
 public class TestClient {
-    private String serverURL;
     private Socket socket;
     private BufferedReader reader;
     private BufferedWriter writer;
@@ -50,11 +55,22 @@ public class TestClient {
         return mapper.readValue(data, SimpleResponse.class);
     }
     public SimpleResponse login(String username, String password) throws Exception {
-        writer.write(SecurityUtils.encrypt(mapper.writeValueAsString(new LoginRequest(username, password)), serverPublic) + "\n");
+        writer.write(SecurityUtils.encrypt(mapper.writeValueAsString(new LoginRequest(username, password)), serverPublic) + '\n');
         writer.flush();
         String data = reader.readLine();
         data = SecurityUtils.decrypt(data, key.getPrivate());
         return mapper.readValue(data, SimpleResponse.class);
+    }
+
+    public SimpleResponse listCharacters() throws Exception {
+        writer.write(
+                SecurityUtils.encrypt(
+                        mapper.writeValueAsString(new ListCharactersRequest()),
+                        serverPublic
+                ) + '\n'
+        );
+        writer.flush();
+        return mapper.readValue(SecurityUtils.decrypt(reader.readLine(), key.getPrivate()), SimpleResponse.class);
     }
 
     private void generateKey() throws NoSuchAlgorithmException {

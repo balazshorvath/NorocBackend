@@ -74,14 +74,14 @@ public class SecurityUtils {
             // decrypt the text using the private key
             cipher.init(Cipher.DECRYPT_MODE, key);
 
-            byte[] buffer = text.getBytes();
+            byte[] buffer = Base64.getDecoder().decode(text.getBytes());
             StringBuilder sb = new StringBuilder();
             int i;
-            for(i = 0; ((i + 1) * 64) < buffer.length; i++) {
-                sb.append(new String(cipher.doFinal(buffer, i * 64, (i + 1) * 64)));
+            for(i = 0; ((i + 1) * 128) < buffer.length; i++) {
+                sb.append(new String(cipher.doFinal(buffer, i * 128, (i + 1) * 128)));
             }
             if((i * 64) < buffer.length){
-                sb.append(new String(cipher.doFinal(buffer, i * 64, buffer.length)));
+                sb.append(new String(cipher.doFinal(buffer, i * 128, buffer.length)));
             }
             return sb.toString();
         } catch (Exception ex) {

@@ -91,6 +91,7 @@ public class World {
         world.mapWidth = config.getMapWidth();
         world.mapHeight = config.getMapHeight();
         world.areaSize = config.getAreaSize();
+        world.name = config.getName();
 
         world.characterRepo = NorocDB.getInstance().getCharacterRepo();
         world.characterClassRepo = NorocDB.getInstance().getCharacterClassRepo();

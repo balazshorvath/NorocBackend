@@ -13,5 +13,5 @@ public interface MongoRepo<T, ID> {
 
     ID insert(T t) throws IOException;
     void delete(ID id);
-
+    void deleteAll();
 }

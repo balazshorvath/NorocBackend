@@ -5,6 +5,7 @@ import com.mongodb.Mongo;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import hu.noroc.common.data.repository.*;
+import org.mongojack.JacksonDBCollection;
 
 /**
  * Created by Oryk on 12/24/2015.
@@ -96,4 +97,5 @@ public class NorocDB {
     public SpellRepo getSpellRepo() {
         return spellRepo;
     }
+
 }

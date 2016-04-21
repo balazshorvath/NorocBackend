@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 
 
 /**
@@ -25,13 +26,13 @@ public class UserRepo extends MongoDBRepo<User, String> {
     public User login(String username, String password){
         String hash;
         try {
-            hash = new String(MessageDigest.getInstance("SHA-256").digest(password.getBytes()));
+            hash = new String(Base64.getEncoder().encode(MessageDigest.getInstance("SHA-256").digest(password.getBytes())));
         } catch (NoSuchAlgorithmException e) {
             return null;
         }
         return collection.findOne(DBQuery.and(
                 DBQuery.is("username", username),
-                DBQuery.is("password", password)
+                DBQuery.is("password", hash)
         ));
     }
 }

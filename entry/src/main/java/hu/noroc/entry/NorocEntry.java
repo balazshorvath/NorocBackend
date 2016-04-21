@@ -70,10 +70,10 @@ public class NorocEntry {
             id = SecurityUtils.randomString(32);
             worlds.put(id, world);
             worldListeners.put(id, getWorldListener(world));
-            LOGGER.info("World initialized: " + id);
+            LOGGER.info("World initialized. Id: " + id + " with name: " + world.getName());
         }
         getTcpServer().start();
-        worldListeners.values().parallelStream().forEach(Thread::start);
+        worldListeners.values().stream().forEach(Thread::start);
 
         while(running){
             Thread.sleep(1000);
@@ -101,11 +101,12 @@ public class NorocEntry {
                 } catch(Exception ignored) {
                 }
             }
+            LOGGER.info("World listener(" + world.getName() + ") is down.");
         });
     }
 
     private static Thread getTcpServer(){
-        if(tcpServer != null)
+        if(tcpServer != null && !tcpServer.isAlive())
             return tcpServer;
         tcpServer = new Thread(() -> {
             String portS = EntryConfig.getValue("port");
@@ -145,6 +146,7 @@ public class NorocEntry {
             }
             try {
                 server.close();
+                LOGGER.info("TCP server is closed.");
             } catch (IOException ignore) {
             }
         });
@@ -152,6 +154,7 @@ public class NorocEntry {
     }
 
     public static void stopServer() throws InterruptedException {
+        LOGGER.info("Shutting down main threads.");
         running = false;
         Thread.sleep(5000);
         if(!tcpServer.getState().equals(Thread.State.TERMINATED))

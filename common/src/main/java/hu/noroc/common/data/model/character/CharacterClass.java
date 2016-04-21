@@ -11,6 +11,7 @@ import java.util.List;
 public class CharacterClass {
 
     private String id;
+    private String code;
     private String name;
     private CharacterStat stat;
     private List<String> spells;
@@ -25,6 +26,14 @@ public class CharacterClass {
     @JsonProperty("_id")
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
     }
 
     public CharacterStat getStat() {

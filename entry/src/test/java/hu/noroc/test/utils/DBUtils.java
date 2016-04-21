@@ -35,9 +35,9 @@ public class DBUtils {
         user.setEmail("mail" + userCounter + "@gmail.com");
         user.setUsername("user" + userCounter);
         user.setPassword(
-                new String(
+                new String(Base64.getEncoder().encode(
                         MessageDigest.getInstance("SHA-256").digest("password".getBytes())
-                )
+                ))
         );
 
         String id = db.getUserRepo().insert(user);
@@ -45,9 +45,9 @@ public class DBUtils {
         return db.getUserRepo().findById(id);
     }
 
-    public PlayerCharacter createCharacter(String classId, String userId) throws IOException {
-        PlayerCharacter character = new PlayerCharacter(classId + characterCounter, userId, classId);
-        CharacterClass characterClass = db.getCharacterClassRepo().findById(classId);
+    public static PlayerCharacter createCharacter(String classCode, String userId) throws IOException {
+        PlayerCharacter character = new PlayerCharacter(classCode + characterCounter, userId, classCode);
+        CharacterClass characterClass = db.getCharacterClassRepo().findByCode(classCode);
         List<Spell> spells = new ArrayList<>();
         for (String s : characterClass.getSpells()) {
             Spell spell = db.getSpellRepo().findById(s);
@@ -94,7 +94,7 @@ public class DBUtils {
         stat.speed = 1.0;
 
         // Warrior class
-        characterClass.setId("WARRIOR");
+        characterClass.setCode("WARRIOR");
         characterClass.setName("Warrior");
 
         characterClass.setSpells(
@@ -103,7 +103,7 @@ public class DBUtils {
                         .get()
         );
         characterClass.setStat(stat);
-
+        db.getCharacterClassRepo().insert(characterClass);
     }
 
     private static Spell initWarriorSpell() throws IOException {
@@ -174,5 +174,13 @@ public class DBUtils {
 
             db.getItemRepo().insert(item);
         }
+    }
+    public static void cleanDBs(){
+        NorocDB.getInstance().getCharacterRepo().deleteAll();
+        NorocDB.getInstance().getItemRepo().deleteAll();
+        NorocDB.getInstance().getUserRepo().deleteAll();
+        NorocDB.getInstance().getSpellRepo().deleteAll();
+        NorocDB.getInstance().getCharacterClassRepo().deleteAll();
+        NorocDB.getInstance().getNpcRepo().deleteAll();
     }
 }
