@@ -23,12 +23,14 @@ import java.io.*;
 import java.net.Socket;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
  * Created by Oryk on 4/13/2016.
  */
 public class GamingClient extends Client implements Runnable {
+    private final static Logger LOGGER = Logger.getLogger(NorocEntry.class.getName());
     public GamingClient(Socket socket, String session, User user) {
         super(socket, session, user);
     }
@@ -85,6 +87,7 @@ public class GamingClient extends Client implements Runnable {
                 NorocEntry.worlds.get(this.worldId).newClientRequest(request);
             }else{
                 SimpleResponse response = preGame(request);
+                response = response == null ? new ErrorResponse(SimpleResponse.INVALID_REQUEST) : response;
                 try {
                     writer.write(NetworkData.rsaData(
                             mapper.writeValueAsString(response),
@@ -99,6 +102,8 @@ public class GamingClient extends Client implements Runnable {
 
         try {
             this.socket.close();
+            NorocEntry.clients.remove(this.session);
+            LOGGER.info("Client disconnected.");
         } catch (IOException ignored) {
         }
     }

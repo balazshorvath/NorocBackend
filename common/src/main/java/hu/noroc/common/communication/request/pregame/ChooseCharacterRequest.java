@@ -14,6 +14,11 @@ public class ChooseCharacterRequest extends Request {
     public ChooseCharacterRequest() {
         this.type = ChooseCharacterRequest.class.getSimpleName();
     }
+    public ChooseCharacterRequest(String worldId, String characterId) {
+        this.type = ChooseCharacterRequest.class.getSimpleName();
+        this.characterId = characterId;
+        this.worldId = worldId;
+    }
 
     public String getWorldId() {
         return worldId;
