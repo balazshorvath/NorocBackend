@@ -40,7 +40,7 @@ public class PreGameTest {
     @Test
     public void testPreGame() throws Exception {
         testLogin();
-        testListings();
+        //testListings();
     }
     public void testLogin() throws Exception {
         SimpleResponse response = client.init("localhost", 1234);
@@ -58,7 +58,7 @@ public class PreGameTest {
         response = client.login(user.getUsername(), user.getPassword());
         assertEquals(response.getCode(), SimpleResponse.SUCCESS);
 
-        client.setSession(((LoginResponse)response).getSession());
+        client.setSession(((LoginResponse) response).getSession());
     }
 
     public void testListings() throws Exception {
