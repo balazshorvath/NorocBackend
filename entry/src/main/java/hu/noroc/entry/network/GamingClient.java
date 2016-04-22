@@ -21,6 +21,7 @@ import sun.security.rsa.RSAPublicKeyImpl;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Logger;
@@ -73,8 +74,12 @@ public class GamingClient extends Client implements Runnable {
         while(online){
             try {
                 message = reader.readLine();
+            } catch (SocketTimeoutException e) {
+                LOGGER.info("Client timeout.");
+                break;
             } catch (IOException e) {
-                return;
+                LOGGER.info("Connection problem.");
+                break;
             }
             message = NetworkData.rsaDecryptData(message, this.key.getPrivate());
             try {
