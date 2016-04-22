@@ -80,7 +80,7 @@ public class SecurityUtils {
             for(i = 0; ((i + 1) * 128) < buffer.length; i++) {
                 sb.append(new String(cipher.doFinal(buffer, i * 128, (i + 1) * 128)));
             }
-            if((i * 64) < buffer.length){
+            if((i * 128) < buffer.length){
                 sb.append(new String(cipher.doFinal(buffer, i * 128, buffer.length)));
             }
             return sb.toString();

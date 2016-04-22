@@ -1,6 +1,8 @@
 package hu.noroc.test.utils;
 
+import hu.noroc.common.communication.request.pregame.ChooseCharacterRequest;
 import hu.noroc.common.communication.request.pregame.ListCharactersRequest;
+import hu.noroc.common.communication.request.pregame.ListWorldsRequest;
 import hu.noroc.common.communication.request.pregame.LoginRequest;
 import hu.noroc.common.communication.response.standard.SimpleResponse;
 import hu.noroc.common.data.model.character.PlayerCharacter;
@@ -8,6 +10,7 @@ import hu.noroc.common.data.model.npc.NPCData;
 import hu.noroc.entry.security.SecurityUtils;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.ObjectMapper;
+import sun.java2d.pipe.SpanShapeRenderer;
 import sun.security.rsa.RSAPublicKeyImpl;
 
 import javax.crypto.BadPaddingException;
@@ -66,6 +69,26 @@ public class TestClient {
         writer.write(
                 SecurityUtils.encrypt(
                         mapper.writeValueAsString(new ListCharactersRequest()),
+                        serverPublic
+                ) + '\n'
+        );
+        writer.flush();
+        return mapper.readValue(SecurityUtils.decrypt(reader.readLine(), key.getPrivate()), SimpleResponse.class);
+    }
+    public SimpleResponse listWorlds() throws Exception {
+        writer.write(
+                SecurityUtils.encrypt(
+                        mapper.writeValueAsString(new ListWorldsRequest()),
+                        serverPublic
+                ) + '\n'
+        );
+        writer.flush();
+        return mapper.readValue(SecurityUtils.decrypt(reader.readLine(), key.getPrivate()), SimpleResponse.class);
+    }
+    public SimpleResponse chooseCharacter(String characterId, String worldId) throws Exception {
+        writer.write(
+                SecurityUtils.encrypt(
+                        mapper.writeValueAsString(new ChooseCharacterRequest(characterId, worldId)),
                         serverPublic
                 ) + '\n'
         );

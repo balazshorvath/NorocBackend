@@ -21,6 +21,14 @@ public class ListWorldsResponse extends SimpleResponse {
         this.worlds = worlds;
     }
 
+    public List<WorldData> getWorlds() {
+        return worlds;
+    }
+
+    public void setWorlds(List<WorldData> worlds) {
+        this.worlds = worlds;
+    }
+
     public static class WorldData{
         private String id;
         private String name;
@@ -34,6 +42,14 @@ public class ListWorldsResponse extends SimpleResponse {
             this.id = id;
             this.name = name;
             this.players = players;
+            this.maxPlayers = maxPlayers;
+        }
+
+        public int getMaxPlayers() {
+            return maxPlayers;
+        }
+
+        public void setMaxPlayers(int maxPlayers) {
             this.maxPlayers = maxPlayers;
         }
 

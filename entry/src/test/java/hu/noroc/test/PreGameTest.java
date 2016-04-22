@@ -1,6 +1,8 @@
 package hu.noroc.test;
 
+import hu.noroc.common.communication.request.pregame.ListWorldsRequest;
 import hu.noroc.common.communication.response.ListCharacterResponse;
+import hu.noroc.common.communication.response.ListWorldsResponse;
 import hu.noroc.common.communication.response.LoginResponse;
 import hu.noroc.common.communication.response.standard.SimpleResponse;
 import hu.noroc.common.data.model.user.User;
@@ -63,6 +65,10 @@ public class PreGameTest {
         SimpleResponse response = client.listCharacters();
         assertEquals(response.getCode(), SimpleResponse.SUCCESS);
         assertEquals(((ListCharacterResponse)response).getCharacters().size(), 1);
+
+        response = client.listWorlds();
+        assertEquals(response.getCode(), SimpleResponse.SUCCESS);
+        assertEquals(((ListWorldsResponse)response).getWorlds().size(), 1);
     }
 
     @After

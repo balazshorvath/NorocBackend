@@ -130,9 +130,11 @@ public class NorocEntry {
             while(running){
                 try {
                     socket = server.accept();
+                    socket.setSoTimeout(60000);
                     client = new GamingClient(socket, SecurityUtils.randomString(32), null);
                     new Thread(client).start();
                     clients.put(client.getSession(), client);
+                    LOGGER.warning("Client connected.");
 //                    if(!socket.getInetAddress().isLoopbackAddress()){
 //                        client = new GamingClient(socket, SecurityUtils.randomString(32), null);
 //                        new Thread(client).start();
