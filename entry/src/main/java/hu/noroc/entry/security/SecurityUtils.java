@@ -34,10 +34,10 @@ public class SecurityUtils {
      * bytes. Store the set of keys in {session}.key and {session}.key files.
      */
     public static void generateKey(Client client) throws NoSuchAlgorithmException {
-            final KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
-            keyGen.initialize(1024);
-            KeyPair key = keyGen.generateKeyPair();
-            client.setKey(key);
+        final KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
+        keyGen.initialize(1024);
+        KeyPair key = keyGen.generateKeyPair();
+        client.setKey(key);
     }
 
     /**
