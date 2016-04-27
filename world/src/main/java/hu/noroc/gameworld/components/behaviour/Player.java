@@ -9,6 +9,8 @@ import hu.noroc.common.data.model.spell.CharacterSpell;
 import hu.noroc.common.data.model.spell.SpellEffect;
 import hu.noroc.gameworld.Area;
 import hu.noroc.gameworld.World;
+import hu.noroc.gameworld.components.behaviour.spell.BuffLogic;
+import hu.noroc.gameworld.components.behaviour.spell.SpellLogic;
 import hu.noroc.gameworld.messaging.EntityActivityType;
 import hu.noroc.gameworld.messaging.EventMessage;
 import hu.noroc.gameworld.messaging.directional.AttackEvent;
@@ -16,28 +18,32 @@ import hu.noroc.gameworld.messaging.directional.DirectionalEvent;
 import hu.noroc.gameworld.messaging.sync.SyncMessage;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by Oryk on 4/3/2016.
  */
-public class Player implements Being {
+public class Player implements Being, LivingEntity {
     private String session;
     private PlayerCharacter character;
     private CharacterClass characterClass;
     private CharacterStat stats;
-    private List<SpellEffect> effects = new ArrayList<>();
+    private Set<BuffLogic> effects = new HashSet<>();
 
     private Area area;
     private World world;
     private double viewDist;
 
-    private long nextCast;
+    private int nextCast;
+    private CharacterSpell casting;
+    private int nextWayPoint = 0;
+    private int nextWayPointTime;
     private double[][] movement;
 
-    public void run() {
-        //TODO: listen for buff durations, spell cast times
-    }
+    private int tickCount = 0;
+
 
     public void update(){
         //TODO: update stats, spells based on items, buffs, debuffs, talents (if there will be such thing)
@@ -54,41 +60,37 @@ public class Player implements Being {
             return;
         if (request instanceof PlayerAttackRequest){
             PlayerAttackRequest playerAttackRequest = (PlayerAttackRequest) request;
-            CharacterSpell spell;
-            if((spell = character.getSpells().get(playerAttackRequest.getSpellId())) == null)
-                return;
-            long current = System.currentTimeMillis();
-            if(current < nextCast)
-                return;
-            if(current < spell.getNextCast())
-                return;
-            nextCast = current + spell.getCastTime();
-            spell.setNextCast(current);
 
-            AttackEvent event = new AttackEvent();
-            event.setEffect(spell.getEffect());
-            event.setSpell(spell);
-            event.setActivity(EntityActivityType.ATTACK);
-            event.setBeing(this);
-            event.setX(event.getX());
-            event.setY(event.getY());
+            if((casting = character.getSpells().get(playerAttackRequest.getSpellId())) == null)
+                return;
+            if(tickCount < nextCast)
+                return;
+            if(tickCount < casting.getNextCast())
+                return;
+            nextCast = tickCount + casting.getCastTime();
+            casting.setCooldown(nextCast);
 
-            area.newMessage(event);
-            world.newSyncMessage(new SyncMessage(session, event));
+            movement = null;
+            nextWayPoint = 0;
         }else if (request instanceof PlayerInteractRequest){
             PlayerInteractRequest playerInteractRequest = (PlayerInteractRequest) request;
 
             //TODO
 
         }else if (request instanceof PlayerMoveRequest){
+            if(casting != null)
+                return;
             PlayerMoveRequest playerMoveRequest = (PlayerMoveRequest) request;
 
             this.movement = playerMoveRequest.getPath();
 
             DirectionalEvent event = new DirectionalEvent();
-            event.setX(playerMoveRequest.getPath()[0][0]);
-            event.setY(playerMoveRequest.getPath()[0][1]);
+            event.setX(movement[0][0]);
+            event.setY(movement[0][1]);
             event.setDirectionalType(DirectionalEvent.DirectionalType.MOVING_TO);
+            nextWayPoint = 1;
+            nextWayPointTime = Movement.calcTime(movement[0][0], movement[0][1], movement[1][0], movement[1][1], stats.speed);
+            world.newSyncMessage(new SyncMessage(session, event));
         }else if (request instanceof PlayerEquipRequest){
             PlayerEquipRequest playerEquipRequest = (PlayerEquipRequest) request;
 
@@ -99,34 +101,65 @@ public class Player implements Being {
     }
 
     @Override
-    public void attacked(SpellEffect effect, Being caster) {
-        //TODO: subtype, send event to client
-        switch (effect.getType()){
-            case DAMAGE:
-                CharacterStat damageStats = effect.getStat();
-                if(!(caster instanceof Player)){
-                    if (effect.getDamageType() == SpellEffect.DamageType.PHYSICAL)
-                        this.stats.health -= damageStats.health -this.stats.armor;
-                    else if (effect.getDamageType() == SpellEffect.DamageType.MAGIC)
-                        this.stats.health -= damageStats.health - this.stats.magicResist;
-                }else if(effect.isMixed()){
-                    // This is not the proper, or final way to do it.
-                    this.stats.health += damageStats.health;
-                }
-                break;
-            case HEAL:
-                break;
-            case BUFF:
-                break;
-            case DEBUFF:
-                break;
-            case DOT:
-                break;
-            case HOT:
-                break;
-            case STUN:
-                break;
+    public void attacked(SpellLogic logic, Being caster) {
+        logic.effect(this);
+
+        AttackEvent event = new AttackEvent();
+        event.setActivity(EntityActivityType.ATTACK);
+        event.setBeing(caster);
+        event.setX(event.getX());
+        event.setY(event.getY());
+
+        world.newSyncMessage(new SyncMessage(session, event));
+    }
+
+    @Override
+    public void tick() {
+        if(casting != null && tickCount++ == nextCast){
+            casting.getLogics().forEach(spellLogic -> {
+                AttackEvent event = new AttackEvent();
+                event.setActivity(EntityActivityType.ATTACK);
+                event.setBeing(this);
+                event.setX(event.getX());
+                event.setY(event.getY());
+
+                area.newMessage(event);
+            });
+            // Send back a smaller message, since it's just an acknowledgement
+            AttackEvent event = new AttackEvent();
+            event.setActivity(EntityActivityType.ATTACK);
+            event.setBeing(this);
+            world.newSyncMessage(new SyncMessage(session, event));
+            casting = null;
         }
+        if(nextWayPoint != 0 && nextWayPointTime == tickCount){
+            if(movement.length != nextWayPoint) {
+                nextWayPointTime = tickCount + Movement.calcTime(
+                        movement[nextWayPoint][0], movement[nextWayPoint][1],
+                        movement[nextWayPoint + 1][0], movement[nextWayPoint + 1][1],
+                        stats.speed
+                );
+
+                DirectionalEvent event = new DirectionalEvent();
+                event.setX(movement[nextWayPoint][0]);
+                event.setY(movement[nextWayPoint][1]);
+                event.setDirectionalType(DirectionalEvent.DirectionalType.CURRENTLY_AT);
+
+                world.newSyncMessage(new SyncMessage(session, event));
+                area.newMessage(event);
+
+                nextWayPoint++;
+            }else{
+                DirectionalEvent event = new DirectionalEvent();
+                event.setX(movement[nextWayPoint][0]);
+                event.setY(movement[nextWayPoint][1]);
+                event.setDirectionalType(DirectionalEvent.DirectionalType.CURRENTLY_AT);
+                nextWayPoint = 0;
+                movement = null;
+            }
+        }
+        effects.forEach(spellEffect -> spellEffect.tick(this));
+
     }
 
     public PlayerCharacter getCharacter() {
@@ -195,7 +228,7 @@ public class Player implements Being {
 
     @Override
     public Integer getArea() {
-        return area.getId();
+        return area == null ? null : area.getId();
     }
 
     @Override
@@ -219,7 +252,7 @@ public class Player implements Being {
     }
 
     @Override
-    public List<SpellEffect> getEffects() {
+    public Set<BuffLogic> getEffects() {
         return effects;
     }
 
@@ -239,7 +272,7 @@ public class Player implements Being {
         this.viewDist = viewDist;
     }
 
-    public void setEffects(List<SpellEffect> effects) {
+    public void setEffects(Set<BuffLogic> effects) {
         this.effects = effects;
     }
 
@@ -247,7 +280,7 @@ public class Player implements Being {
         return nextCast;
     }
 
-    public void setNextCast(long nextCast) {
+    public void setNextCast(int nextCast) {
         this.nextCast = nextCast;
     }
 
@@ -258,4 +291,5 @@ public class Player implements Being {
     public void setMovement(double[][] movement) {
         this.movement = movement;
     }
+
 }

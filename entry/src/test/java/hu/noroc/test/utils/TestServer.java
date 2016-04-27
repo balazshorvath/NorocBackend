@@ -32,7 +32,7 @@ public class TestServer {
 
     public void stopServer() throws InterruptedException {
         gentleStop();
-        Thread.sleep(5000);
+        Thread.sleep(1000);
         if(!gameServer.getState().equals(Thread.State.TERMINATED))
             forceStop();
     }

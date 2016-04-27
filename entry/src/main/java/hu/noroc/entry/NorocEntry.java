@@ -8,18 +8,12 @@ import hu.noroc.entry.security.SecurityUtils;
 import hu.noroc.gameworld.World;
 import hu.noroc.gameworld.config.WorldConfig;
 import hu.noroc.gameworld.messaging.sync.SyncMessage;
-import org.bson.types.ObjectId;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -88,14 +82,14 @@ public class NorocEntry {
             OutputStream stream;
             while(running){
                 try {
+                    //TODO: send data every 100 ms and unti that time gather as much as possible
                     msg = world.getSyncMessage();
                     client = clients.get(msg.getSession());
                     stream = client.getSocket().getOutputStream();
-                    stream.write(NetworkData.rsaData(
+                    stream.write((
                             mapper.writeValueAsString(
                                     NetworkData.getFromEvent(msg.getMessage())
-                            ),
-                            client.getKey().getPublic()
+                            ) + '\n'
                     ).getBytes());
                     stream.flush();
                 } catch(Exception ignored) {
@@ -134,7 +128,7 @@ public class NorocEntry {
                     client = new GamingClient(socket, SecurityUtils.randomString(32), null);
                     new Thread(client).start();
                     clients.put(client.getSession(), client);
-                    LOGGER.warning("Client connected.");
+                    LOGGER.info("Client connected.");
 //                    if(!socket.getInetAddress().isLoopbackAddress()){
 //                        client = new GamingClient(socket, SecurityUtils.randomString(32), null);
 //                        new Thread(client).start();
@@ -143,7 +137,7 @@ public class NorocEntry {
 //                        //TODO: here accept console request
 //                    }
                 } catch (IOException e) {
-                    LOGGER.warning(e.getMessage());
+                    LOGGER.severe("TCP server is closed." + e.getMessage());
                 }
             }
             try {
@@ -158,7 +152,7 @@ public class NorocEntry {
     public static void stopServer() throws InterruptedException {
         LOGGER.info("Shutting down main threads.");
         running = false;
-        Thread.sleep(5000);
+        Thread.sleep(1000);
         if(!tcpServer.getState().equals(Thread.State.TERMINATED))
             tcpServer.interrupt();
 
@@ -167,9 +161,9 @@ public class NorocEntry {
                 .forEach(Thread::interrupt);
 
         clients.values().forEach(Client::disconnect);
-        Thread.sleep(5000);
+        Thread.sleep(1000);
 
         clients.values().stream().filter(client -> !client.getSocket().isClosed()).forEach(Client::forceDisconnect);
-        Thread.sleep(5000);
+        Thread.sleep(1000);
     }
 }

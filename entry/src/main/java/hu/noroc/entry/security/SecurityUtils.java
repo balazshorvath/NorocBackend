@@ -1,24 +1,13 @@
 package hu.noroc.entry.security;
 
 import hu.noroc.entry.network.Client;
-import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
-import org.bouncycastle.crypto.KeyGenerationParameters;
-import org.bouncycastle.crypto.encodings.PKCS1Encoding;
-import org.bouncycastle.crypto.generators.RSAKeyPairGenerator;
-import org.bouncycastle.crypto.params.RSAKeyParameters;
-import org.bouncycastle.crypto.params.RSAPrivateCrtKeyParameters;
-import org.bouncycastle.jcajce.provider.asymmetric.rsa.CipherSpi;
-import sun.security.jca.Providers;
-import sun.security.rsa.RSAPrivateCrtKeyImpl;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
 import java.security.*;
-import java.security.spec.RSAPrivateCrtKeySpec;
 import java.util.Base64;
 import java.util.Random;
 

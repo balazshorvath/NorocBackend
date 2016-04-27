@@ -11,12 +11,9 @@ import hu.noroc.common.communication.request.pregame.LoginRequest;
 import hu.noroc.common.communication.response.standard.SuccessResponse;
 import hu.noroc.common.data.model.user.User;
 import hu.noroc.common.mongodb.NorocDB;
-import hu.noroc.entry.NetworkData;
 import hu.noroc.entry.NorocEntry;
 import hu.noroc.entry.security.SecurityUtils;
 import hu.noroc.gameworld.World;
-import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
-import org.bson.types.ObjectId;
 import org.codehaus.jackson.map.ObjectMapper;
 import sun.security.rsa.RSAPublicKeyImpl;
 
@@ -24,7 +21,6 @@ import java.io.*;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.security.*;
-import java.security.spec.X509EncodedKeySpec;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -41,8 +37,8 @@ public class GamingClient extends Client implements Runnable {
         byte[] buffer = new byte[140];
         try {
             SecurityUtils.generateKey(this);
-            SubjectPublicKeyInfo spkInfo = SubjectPublicKeyInfo.getInstance(this.key.getPublic().getEncoded());
-            socket.getOutputStream().write(spkInfo.parsePublicKey().getEncoded());
+//            SubjectPublicKeyInfo spkInfo = SubjectPublicKeyInfo.getInstance(this.key.getPublic().getEncoded());
+//            socket.getOutputStream().write(spkInfo.parsePublicKey().getEncoded());
             socket.getInputStream().read(buffer, 0, 140);
 
             this.clientPublic = new RSAPublicKeyImpl(buffer);
@@ -55,22 +51,19 @@ public class GamingClient extends Client implements Runnable {
 
     @Override
     public void run() {
-        BufferedReader reader;
-        BufferedWriter writer;
+        BufferedReader reader = null;
+        BufferedWriter writer = null;
         ObjectMapper mapper = new ObjectMapper();
-        initRSA();
-        if(!online)
-            return;
+//        initRSA();
+        online = true;
         try {
             writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-            writer.write(
-                    mapper.writeValueAsString(new SuccessResponse())
-            );
-            writer.write("\n");
+            writer.write(mapper.writeValueAsString(new SuccessResponse()) + '\n');
             writer.flush();
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         } catch (IOException e) {
-            return;
+            LOGGER.severe("Connection problem.");
+            online = false;
         }
         Request request;
         String message;
@@ -84,10 +77,12 @@ public class GamingClient extends Client implements Runnable {
                 LOGGER.info("Connection problem.");
                 break;
             }
-            message = NetworkData.rsaDecryptData(message, this.key.getPrivate());
+//            message = NetworkData.rsaDecryptData(message, this.key.getPrivate());
+            LOGGER.info("Recvd message: " + message);
             try {
                 request = mapper.readValue(message, Request.class);
             } catch (IOException e) {
+                LOGGER.info("Invalid message.");
                 continue;
             }
 
@@ -97,11 +92,11 @@ public class GamingClient extends Client implements Runnable {
                 SimpleResponse response = preGame(request);
                 response = response == null ? new ErrorResponse(SimpleResponse.INVALID_REQUEST) : response;
                 try {
-                    writer.write(NetworkData.rsaData(
-                            mapper.writeValueAsString(response),
-                            clientPublic
-                    ));
-                    writer.write("\n");
+                    writer.write(mapper.writeValueAsString(response) + '\n');
+//                    writer.write(NetworkData.rsaData(
+//                            mapper.writeValueAsString(response),
+//                            clientPublic
+//                    ));
                     writer.flush();
                 } catch (Exception ignored) {
                 }
@@ -154,11 +149,11 @@ public class GamingClient extends Client implements Runnable {
                     return new ErrorResponse(SimpleResponse.NOT_AUTHENTICATED_ERROR, "You need to login first!");
                 World world = NorocEntry.worlds.get(((ChooseCharacterRequest)request).getWorldId());
                 if(world == null)
-                    return new ErrorResponse(SimpleResponse.INVALID_REQUEST);
+                    return new ErrorResponse(SimpleResponse.INVALID_REQUEST, "World server not found!");
                 try {
                     world.loginCharacter((ChooseCharacterRequest) request, user.getId());
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    return new ErrorResponse(SimpleResponse.INTERNAL_ERROR, "Character not found!");
                 }
                 return new SuccessResponse();
         }

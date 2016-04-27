@@ -1,6 +1,5 @@
 package hu.noroc.gameworld;
 
-import hu.noroc.common.communication.message.EntityType;
 import hu.noroc.gameworld.components.behaviour.Player;
 import hu.noroc.gameworld.components.scripting.ScriptedNPC;
 import hu.noroc.gameworld.messaging.EventMessage;

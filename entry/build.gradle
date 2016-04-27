@@ -10,9 +10,8 @@ repositories {
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.11'
     compile 'org.codehaus.jackson:jackson-mapper-asl:1.9.13'
-    compile 'org.bouncycastle:bcprov-jdk15on:1.54'
+    //compile 'org.bouncycastle:bcprov-jdk15on:1.54'
 
-    compile project(':common')
     compile project(':world')
 }
 

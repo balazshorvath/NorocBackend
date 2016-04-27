@@ -1,12 +1,10 @@
 package hu.noroc.entry.network;
 
 import hu.noroc.common.data.model.user.User;
-import hu.noroc.gameworld.components.behaviour.Player;
 
 import java.io.IOException;
 import java.net.Socket;
 import java.security.KeyPair;
-import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.Objects;
 
@@ -38,6 +36,7 @@ public class Client {
     public void disconnect(){
         this.online = false;
     }
+
     public void forceDisconnect() {
         try {
             this.socket.close();

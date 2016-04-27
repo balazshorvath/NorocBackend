@@ -1,12 +1,12 @@
 package hu.noroc.gameworld.components.behaviour;
 
 import hu.noroc.common.data.model.character.CharacterStat;
-import hu.noroc.common.data.model.spell.Spell;
-import hu.noroc.common.data.model.spell.SpellEffect;
 import hu.noroc.gameworld.Area;
+import hu.noroc.gameworld.components.behaviour.spell.BuffLogic;
+import hu.noroc.gameworld.components.behaviour.spell.SpellLogic;
 import hu.noroc.gameworld.messaging.EventMessage;
 
-import java.util.List;
+import java.util.Set;
 
 /**
  * Created by Oryk on 3/31/2016.
@@ -18,9 +18,8 @@ public interface Being {
 
     void newEvent(EventMessage message);
 
-    /* The reason, why the params have SpellEffect, is because otherwise the damage calc for ex. wouldn't be OK */
-    void attacked(SpellEffect effect, Being caster);
-    List<SpellEffect> getEffects();
+    void attacked(SpellLogic logic, Being caster);
+    Set<BuffLogic> getEffects();
 
     CharacterStat getStats();
     void setStats(CharacterStat stats);

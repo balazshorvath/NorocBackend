@@ -2,7 +2,5 @@ rootProject.name = 'GameWorld'
 
 include 'entry'
 
-include 'common'
-
 include 'world'
 
