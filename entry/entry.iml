@@ -32,5 +32,6 @@
     <orderEntry type="library" name="Gradle: org.mongojack:mongojack:2.6.0" level="project" />
     <orderEntry type="library" name="Gradle: javax.persistence:persistence-api:1.0.2" level="project" />
     <orderEntry type="library" name="Gradle: org.mongodb:mongo-java-driver:3.0.4" level="project" />
+    <orderEntry type="library" name="Gradle: org.bouncycastle:bcprov-jdk15on:1.54" level="project" />
   </component>
 </module>

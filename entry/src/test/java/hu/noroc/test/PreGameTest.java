@@ -1,6 +1,5 @@
 package hu.noroc.test;
 
-import hu.noroc.common.communication.request.pregame.ListWorldsRequest;
 import hu.noroc.common.communication.response.ListCharacterResponse;
 import hu.noroc.common.communication.response.ListWorldsResponse;
 import hu.noroc.common.communication.response.LoginResponse;

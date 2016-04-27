@@ -15,6 +15,7 @@ import hu.noroc.entry.NetworkData;
 import hu.noroc.entry.NorocEntry;
 import hu.noroc.entry.security.SecurityUtils;
 import hu.noroc.gameworld.World;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bson.types.ObjectId;
 import org.codehaus.jackson.map.ObjectMapper;
 import sun.security.rsa.RSAPublicKeyImpl;
@@ -22,8 +23,8 @@ import sun.security.rsa.RSAPublicKeyImpl;
 import java.io.*;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
+import java.security.*;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -37,16 +38,18 @@ public class GamingClient extends Client implements Runnable {
     }
 
     public void initRSA(){
-        byte[] buffer = new byte[162];
+        byte[] buffer = new byte[140];
         try {
             SecurityUtils.generateKey(this);
-            socket.getOutputStream().write(this.key.getPublic().getEncoded());
-            int bytes = socket.getInputStream().read(buffer, 0, 162);
+            SubjectPublicKeyInfo spkInfo = SubjectPublicKeyInfo.getInstance(this.key.getPublic().getEncoded());
+            socket.getOutputStream().write(spkInfo.parsePublicKey().getEncoded());
+            socket.getInputStream().read(buffer, 0, 140);
 
             this.clientPublic = new RSAPublicKeyImpl(buffer);
             this.online = true;
-        } catch (NoSuchAlgorithmException | IOException | InvalidKeyException e) {
+        } catch (NoSuchAlgorithmException | IOException | InvalidKeyException | NoSuchProviderException e) {
             online = false;
+            LOGGER.warning(e.getMessage());
         }
     }
 
