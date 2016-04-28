@@ -10,14 +10,14 @@ public class Ticker {
 	
 	Thread ticker;
 	
-	final int baseTimeUnit = 100; //milliseconds
+	public static final int TICK_UNIT = 100; //milliseconds
 	
-	List<ScriptedEntity> tickSubscribers = new ArrayList<ScriptedEntity>();
+	List<ScriptedEntity> tickSubscribers = new ArrayList<>();
 	
 	public void start() {
 		if (!enabled) {
 			enabled = true;
-			ticker = createTicker();
+			createTicker();
 			ticker.start();
 		}
 	}
@@ -37,16 +37,13 @@ public class Ticker {
 		}
 	}
 	
-	private Thread createTicker(){
-					
-		return new Thread(()->{
+	private void createTicker(){
+		ticker = new Thread(()->{
 				while(enabled){
-					for(ScriptedEntity subscriber : tickSubscribers){
-						subscriber.tick();							
-					}
+					tickSubscribers.forEach(ScriptedEntity::tick);
 					try {
-						Thread.sleep(baseTimeUnit);
-					} catch (Exception e) {}
+						Thread.sleep(TICK_UNIT);
+					} catch (Exception ignored) {}
 				}
 			
 		});

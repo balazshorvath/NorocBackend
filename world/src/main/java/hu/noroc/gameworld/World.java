@@ -2,7 +2,8 @@ package hu.noroc.gameworld;
 
 import hu.noroc.common.communication.request.Request;
 import hu.noroc.common.communication.request.pregame.ChooseCharacterRequest;
-import hu.noroc.common.data.model.character.*;
+import hu.noroc.common.data.model.character.CharacterClass;
+import hu.noroc.common.data.model.character.PlayerCharacter;
 import hu.noroc.common.data.model.spell.Spell;
 import hu.noroc.common.data.repository.CharacterClassRepo;
 import hu.noroc.common.data.repository.CharacterRepo;
@@ -14,7 +15,6 @@ import hu.noroc.gameworld.components.scripting.ScriptedNPC;
 import hu.noroc.gameworld.config.WorldConfig;
 import hu.noroc.gameworld.messaging.sync.SyncMessage;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.concurrent.BlockingDeque;
 import java.util.logging.Logger;
@@ -70,7 +70,7 @@ public class World {
         PlayerCharacter playerCharacter = characterRepo.findById(request.getCharacterId());
         if(!playerCharacter.getUserId().equals(userId))
             throw new Exception("You do not own this character!");
-        CharacterClass characterClass = characterClassRepo.findById(playerCharacter.getClassId());
+        CharacterClass characterClass = characterClassRepo.findByCode(playerCharacter.getClassId());
         Player player = new Player();
 
         player.setCharacter(playerCharacter);

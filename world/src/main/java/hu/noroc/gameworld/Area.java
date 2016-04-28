@@ -1,9 +1,8 @@
 package hu.noroc.gameworld;
 
-import hu.noroc.common.communication.message.EntityType;
 import hu.noroc.gameworld.components.behaviour.Player;
 import hu.noroc.gameworld.components.scripting.ScriptedNPC;
-import hu.noroc.gameworld.messaging.EventMessage;
+import hu.noroc.gameworld.messaging.Event;
 import hu.noroc.gameworld.messaging.directional.AttackEvent;
 
 import java.util.ArrayList;
@@ -32,7 +31,7 @@ public class Area {
     protected List<ScriptedNPC> npcs = new ArrayList<>();
     protected List<Player> players = new ArrayList<>();
 
-    protected BlockingDeque<EventMessage> areaMessenger = new LinkedBlockingDeque<>();
+    protected BlockingDeque<Event> areaMessenger = new LinkedBlockingDeque<>();
 
     protected Thread messageConsumer;
 
@@ -49,7 +48,7 @@ public class Area {
         startY = indexWidth * sideLength;
 
         messageConsumer = new Thread(() -> {
-            EventMessage message = null;
+            Event message = null;
             while(World.isRunning()){
                 try {
                     message = areaMessenger.poll(5, TimeUnit.SECONDS);
@@ -75,8 +74,8 @@ public class Area {
 
         final double xd = event.getX();
         final double yd = event.getY();
-        final double r = event.getSpell().getRadius();
-        final double as = event.getSpell().getAlpha();
+        final double r = event.getRadius();
+        final double as = event.getAlpha();
         // Direction deg
         final double ad = Math.atan((yd - yp) / (xd - xp));
 
@@ -117,7 +116,7 @@ public class Area {
 
     }
 
-    public void newMessage(EventMessage message){
+    public void newMessage(Event message){
         areaMessenger.push(message);
     }
 

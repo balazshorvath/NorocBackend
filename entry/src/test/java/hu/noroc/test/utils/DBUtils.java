@@ -10,9 +10,7 @@ import hu.noroc.common.data.model.spell.SpellCost;
 import hu.noroc.common.data.model.spell.SpellEffect;
 import hu.noroc.common.data.model.user.User;
 import hu.noroc.common.mongodb.NorocDB;
-import hu.noroc.entry.security.SecurityUtils;
 import hu.noroc.test.utils.common.ArrayListBuilder;
-import org.bson.types.ObjectId;
 
 import java.io.IOException;
 import java.security.MessageDigest;

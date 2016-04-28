@@ -1,32 +1,59 @@
 package hu.noroc.gameworld.messaging.directional;
 
-import hu.noroc.common.data.model.spell.Spell;
-import hu.noroc.common.data.model.spell.SpellEffect;
+import hu.noroc.common.communication.message.AttackMessage;
+import hu.noroc.common.communication.message.Message;
+import hu.noroc.gameworld.components.behaviour.spell.SpellLogic;
 
 /**
  * Created by Oryk on 4/3/2016.
  */
 public class AttackEvent extends DirectionalEvent {
-    protected SpellEffect effect;
-    protected Spell spell;
+    protected SpellLogic effect;
+    protected double radius;
+    protected double alpha;
+
+    @Override
+    public Message createMessage() {
+        AttackMessage message = new AttackMessage();
+
+        message.setDirectionalType(directionalType);
+        message.setX(x);
+        message.setY(y);
+        message.setEntityId(being.getId());
+        message.setEntityType(entity);
+
+        message.setSpellId(effect.getSpellId());
+        message.setAlpha(alpha);
+        message.setRadius(radius);
+
+        return message;
+    }
 
     public AttackEvent() {
         this.directionalType = DirectionalType.ATTACK;
     }
 
-    public SpellEffect getEffect() {
+    public SpellLogic getEffect() {
         return effect;
     }
 
-    public void setEffect(SpellEffect effect) {
+    public void setEffect(SpellLogic effect) {
         this.effect = effect;
     }
 
-    public Spell getSpell() {
-        return spell;
+    public double getRadius() {
+        return radius;
     }
 
-    public void setSpell(Spell spell) {
-        this.spell = spell;
+    public void setRadius(double radius) {
+        this.radius = radius;
+    }
+
+    public double getAlpha() {
+        return alpha;
+    }
+
+    public void setAlpha(double alpha) {
+        this.alpha = alpha;
     }
 }

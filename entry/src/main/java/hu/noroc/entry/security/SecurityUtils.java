@@ -31,13 +31,25 @@ public class SecurityUtils {
 
     /**
      * Generate key which contains a pair of private and public key using 1024
-     * bytes. Store the set of keys in {session}.key and {session}.key files.
+     * bytes.
      */
-    public static void generateKey(Client client) throws NoSuchAlgorithmException {
-            final KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
-            keyGen.initialize(1024);
-            KeyPair key = keyGen.generateKeyPair();
-            client.setKey(key);
+    public static void generateKey(Client client) throws NoSuchAlgorithmException, NoSuchProviderException {
+        final KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
+//        RSAKeyPairGenerator generator = new RSAKeyPairGenerator();
+//        generator.init(new KeyGenerationParameters(new SecureRandom(), 1024));
+//        AsymmetricCipherKeyPair pair = generator.generateKeyPair();
+//        RSAKeyParameters publicKey = (RSAKeyParameters) pair.getPublic();
+//        RSAPrivateCrtKeyParameters privateKey = (RSAPrivateCrtKeyParameters) pair.getPrivate();
+//        RSAPrivateCrtKeySpec keySpec = new RSAPrivateCrtKeySpec(
+//                privateKey.getModulus(), privateKey.getPublicExponent(), privateKey.getExponent(),
+//                privateKey.getP(),privateKey.getQ(), privateKey.getDP(), privateKey.getDQ(),
+//                privateKey.getQInv()
+//        );
+
+
+        keyGen.initialize(1024);
+        KeyPair key = keyGen.generateKeyPair();
+        client.setKey(key);
     }
 
     /**
@@ -51,7 +63,7 @@ public class SecurityUtils {
      */
     public static String encrypt(String text, PublicKey key) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, UnsupportedEncodingException, BadPaddingException, IllegalBlockSizeException {
         // get an RSA cipher object and print the provider
-        final Cipher cipher = Cipher.getInstance("RSA");
+        final Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
         // encrypt the plain text using the public key
         cipher.init(Cipher.ENCRYPT_MODE, key);
         return new String(Base64.getEncoder().encode(cipher.doFinal(text.getBytes())));
@@ -69,7 +81,7 @@ public class SecurityUtils {
     public static String decrypt(String text, PrivateKey key) {
         try {
             // get an RSA cipher object and print the provider
-            final Cipher cipher = Cipher.getInstance("RSA");
+            final Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
 
             // decrypt the text using the private key
             cipher.init(Cipher.DECRYPT_MODE, key);
