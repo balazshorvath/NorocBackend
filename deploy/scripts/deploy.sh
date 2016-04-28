@@ -1,8 +1,10 @@
 #!/bin/sh
-if [ -d "/config" ]; then
-    rm -r /config
+if [ -d "/config/noroc" ]; then
+    rm -r /config/noroc
 fi
-mkdir /config
+if [ ! -d "/config" ]; then
+    mkdir /config
+fi
 mkdir /config/noroc
 mkdir /config/noroc/npc
 
