@@ -1,9 +1,11 @@
 package hu.noroc.gameworld;
 
+import hu.noroc.common.communication.message.EntityType;
 import hu.noroc.gameworld.components.behaviour.Player;
 import hu.noroc.gameworld.components.scripting.ScriptedNPC;
 import hu.noroc.gameworld.messaging.Event;
 import hu.noroc.gameworld.messaging.directional.AttackEvent;
+import hu.noroc.gameworld.messaging.directional.DirectionalEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,13 +60,24 @@ public class Area {
                 if(message == null){
                     continue;
                 }
-                final Event finalMessage = message;
-                players.forEach(player -> {
-                    player.isInside(finalMessage.getBeing().getX(), finalMessage.getBeing().getY());
-                });
-                //TODO pass msgs
-                //TODO ifPlayer movement & falls out of range ask to delete player
-                System.out.println("got a message..." + message);
+                if(message instanceof AttackEvent){
+                    applySpell((AttackEvent) message);
+                }else {
+                    final Event finalMessage = message;
+                    players.forEach(player -> {
+                        if (player.isInside(finalMessage.getBeing().getX(), finalMessage.getBeing().getY()))
+                            player.newEvent(finalMessage);
+                    });
+                    npcs.forEach(scriptedNPC -> {
+                        if (scriptedNPC.isInside(finalMessage.getBeing().getX(), finalMessage.getBeing().getY()))
+                            scriptedNPC.newEvent(finalMessage);
+                    });
+                    if(message instanceof DirectionalEvent && finalMessage.getEntity() == EntityType.PLAYER
+                            && ((DirectionalEvent)message).getDirectionalType() == DirectionalEvent.DirectionalType.CURRENTLY_AT
+                            && !isInside(((DirectionalEvent)message).getX(), ((DirectionalEvent)message).getY())){
+                        world.putPlayerToArea((Player) message.getBeing());
+                    }
+                }
             }
         });
 
@@ -86,7 +99,7 @@ public class Area {
         //TODO: Consider parallel execution (search->applySpell), while the entity calcs the damage
         // npcs.parallelStream();
 
-
+        //TODO: Friendly/Unfriendly stuff
         npcs.forEach(scriptedNPC -> {
             // Target - Entity
             double xpt = scriptedNPC.getEntity().getX() - xp;

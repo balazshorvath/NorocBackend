@@ -243,16 +243,6 @@ public class Player implements Being, LivingEntity {
     }
 
     @Override
-    public void damage(int amount) {
-        this.stats.health = this.stats.health - amount;
-    }
-
-    @Override
-    public void heal(int amount) {
-        this.stats.health = this.stats.health + amount;
-    }
-
-    @Override
     public boolean isInside(double x, double y) {
         return ((x - this.character.getX())*(x - this.character.getX()) + (y - this.character.getY())*(y - this.character.getY())) < viewDist;
     }

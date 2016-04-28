@@ -12,8 +12,6 @@ import java.util.Set;
  * Created by Oryk on 3/31/2016.
  */
 public interface Being {
-    void damage(int amount);
-    void heal(int amount);
     boolean isInside(double x, double y);
 
     void newEvent(Event message);

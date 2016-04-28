@@ -25,7 +25,7 @@ public abstract class SpellLogic extends SpellEffect {
         this.characterId = logic.characterId;
     }
 
-
+    //TODO: separate method for "friendly" and "unfriendly" targets
     public abstract void effect(Being being);
 
     public String getSpellName() {
