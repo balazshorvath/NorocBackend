@@ -58,6 +58,10 @@ public class Area {
                 if(message == null){
                     continue;
                 }
+                final Event finalMessage = message;
+                players.forEach(player -> {
+                    player.isInside(finalMessage.getBeing().getX(), finalMessage.getBeing().getY());
+                });
                 //TODO pass msgs
                 //TODO ifPlayer movement & falls out of range ask to delete player
                 System.out.println("got a message..." + message);

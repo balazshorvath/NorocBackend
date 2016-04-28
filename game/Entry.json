@@ -1,0 +1,5 @@
+{
+  "port": 1234,
+  "dbUrl": "localhost",
+  "dbName": "Noroc"
+}
