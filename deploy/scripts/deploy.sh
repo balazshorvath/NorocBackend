@@ -13,4 +13,5 @@ cd ../../
 cp -r game/ /config/noroc/
 
 gradle fullBuild
-#TODO
+cp build/libs/GameWorld-1.0.jar /opt/Noroc/GameWorld-1.0.jar
+chmod 777 /opt/Noroc/GameWorld-1.0.jar
