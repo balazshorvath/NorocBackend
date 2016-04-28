@@ -12,10 +12,9 @@ import org.codehaus.jackson.annotate.JsonTypeInfo;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({
-    @JsonSubTypes.Type(value = EntityAttackMessage.class, name = "EntityAttackMessage"),
-    @JsonSubTypes.Type(value = EntityMoveMessage.class, name = "EntityMoveMessage"),
-    @JsonSubTypes.Type(value = PlayerInteractMessage.class, name = "PlayerInteractMessage"),
-    @JsonSubTypes.Type(value = PlayerEquipMessage.class, name = "PlayerEquipMessage")
+    @JsonSubTypes.Type(value = AttackMessage.class, name = "AttackMessage"),
+    @JsonSubTypes.Type(value = DirectionalMessage.class, name = "DirectionalMessage"),
+    @JsonSubTypes.Type(value = TargetedMessage.class, name = "TargetedMessage")
 })
 public class Message {
     protected String type;

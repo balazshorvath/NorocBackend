@@ -12,14 +12,12 @@ import hu.noroc.gameworld.World;
 import hu.noroc.gameworld.components.behaviour.spell.BuffLogic;
 import hu.noroc.gameworld.components.behaviour.spell.SpellLogic;
 import hu.noroc.gameworld.messaging.EntityActivityType;
-import hu.noroc.gameworld.messaging.EventMessage;
+import hu.noroc.gameworld.messaging.Event;
 import hu.noroc.gameworld.messaging.directional.AttackEvent;
 import hu.noroc.gameworld.messaging.directional.DirectionalEvent;
 import hu.noroc.gameworld.messaging.sync.SyncMessage;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -50,12 +48,12 @@ public class Player implements Being, LivingEntity {
     }
 
     @Override
-    public void newEvent(EventMessage message) {
+    public void newEvent(Event message) {
         world.newSyncMessage(new SyncMessage(session, message));
     }
 
     public void clientRequest(Request request){
-        //TODO: validate, transform into EventMessage, put into areaMessenger, act as expected
+        //TODO: validate, transform into Event, put into areaMessenger, act as expected
         if(effects.stream().anyMatch(spellEffect -> spellEffect.getType() == SpellEffect.SpellType.STUN))
             return;
         if (request instanceof PlayerAttackRequest){
@@ -116,12 +114,15 @@ public class Player implements Being, LivingEntity {
     @Override
     public void tick() {
         if(casting != null && tickCount++ == nextCast){
-            casting.getLogics().forEach(spellLogic -> {
+            casting.createLogics().forEach(spellLogic -> {
                 AttackEvent event = new AttackEvent();
+
                 event.setActivity(EntityActivityType.ATTACK);
                 event.setBeing(this);
                 event.setX(event.getX());
                 event.setY(event.getY());
+                event.setRadius(casting.getRadius());
+                event.setAlpha(casting.getAlpha());
 
                 area.newMessage(event);
             });
@@ -147,6 +148,11 @@ public class Player implements Being, LivingEntity {
 
                 world.newSyncMessage(new SyncMessage(session, event));
                 area.newMessage(event);
+
+                event = new DirectionalEvent();
+                event.setX(movement[nextWayPoint + 1][0]);
+                event.setY(movement[nextWayPoint + 1][1]);
+                event.setDirectionalType(DirectionalEvent.DirectionalType.MOVING_TO);
 
                 nextWayPoint++;
             }else{

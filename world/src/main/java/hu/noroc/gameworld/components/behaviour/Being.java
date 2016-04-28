@@ -4,7 +4,7 @@ import hu.noroc.common.data.model.character.CharacterStat;
 import hu.noroc.gameworld.Area;
 import hu.noroc.gameworld.components.behaviour.spell.BuffLogic;
 import hu.noroc.gameworld.components.behaviour.spell.SpellLogic;
-import hu.noroc.gameworld.messaging.EventMessage;
+import hu.noroc.gameworld.messaging.Event;
 
 import java.util.Set;
 
@@ -16,7 +16,7 @@ public interface Being {
     void heal(int amount);
     boolean isInside(double x, double y);
 
-    void newEvent(EventMessage message);
+    void newEvent(Event message);
 
     void attacked(SpellLogic logic, Being caster);
     Set<BuffLogic> getEffects();

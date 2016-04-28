@@ -25,8 +25,7 @@ public class CharacterSpell extends Spell {
     }
 
 
-    @JsonIgnore
-    public List<SpellLogic> getLogics(){
+    public List<SpellLogic> createLogics(){
         List<SpellLogic> logics = new ArrayList<>();
 
         logics.add(effect.createLogic(ownerId, id, name));

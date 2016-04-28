@@ -1,11 +1,7 @@
 package hu.noroc.entry;
 
-import hu.noroc.common.communication.message.EntityMoveMessage;
-import hu.noroc.common.communication.message.Message;
 import hu.noroc.entry.security.Compressor;
 import hu.noroc.entry.security.SecurityUtils;
-import hu.noroc.gameworld.messaging.EventMessage;
-import hu.noroc.gameworld.messaging.directional.DirectionalEvent;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -36,30 +32,6 @@ public class NetworkData {
         return SecurityUtils.decrypt(data, key);
     }
 
-
-    public static Message getFromEvent(EventMessage eventMessage){
-        switch(eventMessage.getActivity()){
-            case MOVE:
-                EntityMoveMessage message = new EntityMoveMessage();
-                DirectionalEvent event = (DirectionalEvent) eventMessage;
-
-                message.setPath(new double[1][2]);
-                message.getPath()[0][0] = event.getX();
-                message.getPath()[0][1] = event.getY();
-
-                message.setEntityId(event.getBeing().getId());
-                message.setEntityType(event.getEntity());
-
-                return message;
-            case ATTACK:
-                return null;
-            case INTERACT:
-                return null;
-            case EQUIP:
-                return null;
-        }
-        return null;
-    }
 //
 //    /**
 //     * @param session 32 bytes of random things

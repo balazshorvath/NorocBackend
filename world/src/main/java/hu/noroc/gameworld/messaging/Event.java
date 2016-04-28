@@ -1,6 +1,7 @@
 package hu.noroc.gameworld.messaging;
 
 import hu.noroc.common.communication.message.EntityType;
+import hu.noroc.common.communication.message.Message;
 import hu.noroc.gameworld.components.behaviour.Being;
 
 /**
@@ -10,10 +11,12 @@ import hu.noroc.gameworld.components.behaviour.Being;
  *
  * Created by Oryk on 3/19/2016.
  */
-public abstract class EventMessage {
+public abstract class Event {
     protected EntityType entity;
     protected EntityActivityType activity;
     protected Being being;
+
+    public abstract Message createMessage();
 
     public EntityType getEntity() {
         return entity;

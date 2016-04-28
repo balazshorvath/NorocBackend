@@ -82,13 +82,12 @@ public class NorocEntry {
             OutputStream stream;
             while(running){
                 try {
-                    //TODO: send data every 100 ms and unti that time gather as much as possible
                     msg = world.getSyncMessage();
                     client = clients.get(msg.getSession());
                     stream = client.getSocket().getOutputStream();
                     stream.write((
                             mapper.writeValueAsString(
-                                    NetworkData.getFromEvent(msg.getMessage())
+                                    msg.getEvent().createMessage()
                             ) + '\n'
                     ).getBytes());
                     stream.flush();
@@ -108,7 +107,7 @@ public class NorocEntry {
             if(portS != null)
                 port = Integer.parseInt(portS);
             if(port == 0)
-                port = 63001;
+                port = 1234;
 
             ServerSocket server;
             try {
@@ -134,7 +133,6 @@ public class NorocEntry {
 //                        new Thread(client).start();
 //                        clients.put(client.getSession(), client);
 //                    }else{
-//                        //TODO: here accept console request
 //                    }
                 } catch (IOException e) {
                     LOGGER.severe("TCP server is closed." + e.getMessage());

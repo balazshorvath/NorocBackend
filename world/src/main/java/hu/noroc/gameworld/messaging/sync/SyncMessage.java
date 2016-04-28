@@ -1,6 +1,6 @@
 package hu.noroc.gameworld.messaging.sync;
 
-import hu.noroc.gameworld.messaging.EventMessage;
+import hu.noroc.gameworld.messaging.Event;
 
 /**
  * This message type is transferred between the entry-point's Client and it's Player object.
@@ -9,11 +9,11 @@ import hu.noroc.gameworld.messaging.EventMessage;
  */
 public class SyncMessage {
     private String session;
-    private EventMessage message;
+    private Event event;
 
-    public SyncMessage(String session, EventMessage message) {
+    public SyncMessage(String session, Event event) {
         this.session = session;
-        this.message = message;
+        this.event = event;
     }
 
     public String getSession() {
@@ -24,11 +24,11 @@ public class SyncMessage {
         this.session = session;
     }
 
-    public EventMessage getMessage() {
-        return message;
+    public Event getEvent() {
+        return event;
     }
 
-    public void setMessage(EventMessage message) {
-        this.message = message;
+    public void setEvent(Event event) {
+        this.event = event;
     }
 }
