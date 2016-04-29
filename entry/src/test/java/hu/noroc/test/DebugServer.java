@@ -27,7 +27,9 @@ public class DebugServer {
         server = new TestServer();
         server.startGame();
 
-        while(true);
+        while(true){
+            Thread.sleep(10);
+        }
     }
     @After
     public void stop() throws InterruptedException {
