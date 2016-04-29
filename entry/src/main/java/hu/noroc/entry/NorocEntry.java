@@ -191,6 +191,7 @@ public class NorocEntry {
                             socket.close();
                             return;
                         }
+                        socket.setSoTimeout(60000);
                         client.setSocket(socket);
                     }
                 } catch (IOException e) {
@@ -198,7 +199,12 @@ public class NorocEntry {
                     return;
                 }
             }
-            //handle client types here, if there will be any
+            try {
+                socket.setSoTimeout(60000);
+            } catch (SocketException e) {
+                LOGGER.info("Connection problem.");
+                return;
+            }
             GamingClient client = new GamingClient(socket, SecurityUtils.randomString(32), null);
             new Thread(client).start();
             clients.put(client.getSession(), client);
