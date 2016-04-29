@@ -1,5 +1,10 @@
 package hu.noroc.entry;
 
+import com.mongodb.gridfs.CLI;
+import hu.noroc.common.communication.request.ReconnectRequest;
+import hu.noroc.common.communication.request.Request;
+import hu.noroc.common.communication.response.standard.ErrorResponse;
+import hu.noroc.common.communication.response.standard.SimpleResponse;
 import hu.noroc.common.mongodb.NorocDB;
 import hu.noroc.entry.config.EntryConfig;
 import hu.noroc.entry.network.Client;
@@ -10,10 +15,14 @@ import hu.noroc.gameworld.config.WorldConfig;
 import hu.noroc.gameworld.messaging.sync.SyncMessage;
 import org.codehaus.jackson.map.ObjectMapper;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -118,22 +127,11 @@ public class NorocEntry {
                 return;
             }
             Socket socket;
-            GamingClient client;
 
             while(running){
                 try {
                     socket = server.accept();
-                    socket.setSoTimeout(60000);
-                    client = new GamingClient(socket, SecurityUtils.randomString(32), null);
-                    new Thread(client).start();
-                    clients.put(client.getSession(), client);
-                    LOGGER.info("Client connected.");
-//                    if(!socket.getInetAddress().isLoopbackAddress()){
-//                        client = new GamingClient(socket, SecurityUtils.randomString(32), null);
-//                        new Thread(client).start();
-//                        clients.put(client.getSession(), client);
-//                    }else{
-//                    }
+                    prepareClient(socket).start();
                 } catch (IOException e) {
                     LOGGER.severe("TCP server is closed." + e.getMessage());
                 }
@@ -163,5 +161,48 @@ public class NorocEntry {
 
         clients.values().stream().filter(client -> !client.getSocket().isClosed()).forEach(Client::forceDisconnect);
         Thread.sleep(1000);
+    }
+    public static Thread prepareClient(Socket socket){
+        return new Thread(() -> {
+            try {
+                socket.setSoTimeout(5000);
+            } catch (SocketException e) {
+                LOGGER.info("Connection problem.");
+                return;
+            }
+            String message = null;
+            try {
+                message = new BufferedReader(new InputStreamReader(socket.getInputStream())).readLine();
+            } catch (SocketTimeoutException ignore) {
+            } catch (IOException e) {
+                LOGGER.info("Connection problem.");
+                return;
+            }
+            if(message != null){
+                try {
+                    Request request = new ObjectMapper().readValue(message, Request.class);
+                    if(request instanceof ReconnectRequest){
+                        Client client = clients.get(request.getSession());
+                        if(client == null){
+                            socket.getOutputStream().write(
+                                    new ObjectMapper().writeValueAsBytes(new ErrorResponse(SimpleResponse.NOT_AUTHENTICATED_ERROR))
+                            );
+                            socket.getOutputStream().flush();
+                            socket.close();
+                            return;
+                        }
+                        client.setSocket(socket);
+                    }
+                } catch (IOException e) {
+                    LOGGER.info("Connection problem.");
+                    return;
+                }
+            }
+            //handle client types here, if there will be any
+            GamingClient client = new GamingClient(socket, SecurityUtils.randomString(32), null);
+            new Thread(client).start();
+            clients.put(client.getSession(), client);
+            LOGGER.info("Client connected.");
+        });
     }
 }
