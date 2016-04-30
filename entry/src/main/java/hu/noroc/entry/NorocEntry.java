@@ -191,6 +191,10 @@ public class NorocEntry {
                             socket.close();
                             return;
                         }
+                        if(client.getState() != Client.ClientState.CONNECTED){
+                            LOGGER.warning("Got reconnect request for client, but client was online.");
+                            return;
+                        }
                         socket.setSoTimeout(60000);
                         if(client.isOnline())
                             client.disconnect();

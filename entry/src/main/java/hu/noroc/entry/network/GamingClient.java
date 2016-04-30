@@ -56,6 +56,7 @@ public class GamingClient extends Client implements Runnable {
         ObjectMapper mapper = new ObjectMapper();
 //        initRSA();
         online = true;
+        state = ClientState.CONNECTED;
         try {
             writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             writer.write(mapper.writeValueAsString(new SuccessResponse()) + '\n');
@@ -63,6 +64,7 @@ public class GamingClient extends Client implements Runnable {
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         } catch (IOException e) {
             LOGGER.severe("Connection problem.");
+            state = ClientState.DISCONNECTED;
             online = false;
         }
         Request request;
@@ -72,9 +74,11 @@ public class GamingClient extends Client implements Runnable {
                 message = reader.readLine();
             } catch (SocketTimeoutException e) {
                 LOGGER.info("Client timeout.");
+                state = ClientState.TIMED_OUT;
                 break;
             } catch (IOException e) {
                 LOGGER.info("Connection problem.");
+                state = ClientState.DISCONNECTED;
                 break;
             }
 //            message = NetworkData.rsaDecryptData(message, this.key.getPrivate());
@@ -104,6 +108,7 @@ public class GamingClient extends Client implements Runnable {
         }
         disconnect();
         LOGGER.info("Client disconnected. Session lives.");
+        if(state == ClientState.CONNECTED) state = ClientState.UNKNOWN;
     }
 
     private SimpleResponse preGame(Request request){
@@ -150,6 +155,10 @@ public class GamingClient extends Client implements Runnable {
                 } catch (Exception e) {
                     return new ErrorResponse(SimpleResponse.INTERNAL_ERROR, "Character not found!");
                 }
+                return new SuccessResponse();
+            case "PauseConnection":
+                state = ClientState.PAUSED;
+                disconnect();
                 return new SuccessResponse();
         }
         return null;

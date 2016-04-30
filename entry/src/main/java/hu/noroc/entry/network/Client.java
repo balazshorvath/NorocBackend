@@ -13,6 +13,7 @@ import java.util.Objects;
  */
 public class Client {
     protected boolean online;
+    protected ClientState state;
     protected Socket socket;
     protected String session;
 
@@ -49,6 +50,18 @@ public class Client {
             this.socket.close();
         } catch (IOException ignore) {
         }
+    }
+
+    public enum ClientState{
+        PAUSED,
+        DISCONNECTED,
+        TIMED_OUT,
+        CONNECTED,
+        UNKNOWN
+    }
+
+    public ClientState getState() {
+        return state;
     }
 
     @Override
