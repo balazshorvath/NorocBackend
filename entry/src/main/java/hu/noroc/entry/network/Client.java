@@ -33,8 +33,15 @@ public class Client {
         this.user = user;
     }
 
-    public void disconnect(){
+    public void disconnect()  {
         this.online = false;
+        if(this.socket != null && !this.socket.isClosed()){
+            try {
+                this.socket.close();
+            } catch (IOException ignored) {
+            }
+        }
+
     }
 
     public void forceDisconnect() {

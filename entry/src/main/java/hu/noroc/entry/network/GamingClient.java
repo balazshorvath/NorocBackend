@@ -102,13 +102,8 @@ public class GamingClient extends Client implements Runnable {
                 }
             }
         }
-
-        try {
-            this.socket.close();
-            NorocEntry.clients.remove(this.session);
-            LOGGER.info("Client disconnected.");
-        } catch (IOException ignored) {
-        }
+        disconnect();
+        LOGGER.info("Client disconnected. Session lives.");
     }
 
     private SimpleResponse preGame(Request request){

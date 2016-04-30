@@ -182,7 +182,7 @@ public class NorocEntry {
                 try {
                     Request request = new ObjectMapper().readValue(message, Request.class);
                     if(request instanceof ReconnectRequest){
-                        Client client = clients.get(request.getSession());
+                        GamingClient client = (GamingClient) clients.get(request.getSession());
                         if(client == null){
                             socket.getOutputStream().write(
                                     new ObjectMapper().writeValueAsBytes(new ErrorResponse(SimpleResponse.NOT_AUTHENTICATED_ERROR))
@@ -192,7 +192,11 @@ public class NorocEntry {
                             return;
                         }
                         socket.setSoTimeout(60000);
+                        if(client.isOnline())
+                            client.disconnect();
                         client.setSocket(socket);
+                        new Thread(client).start();
+                        LOGGER.info("Client reconnected.");
                     }
                 } catch (IOException e) {
                     LOGGER.info("Connection problem.");
