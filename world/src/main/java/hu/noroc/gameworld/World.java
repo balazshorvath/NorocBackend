@@ -12,6 +12,7 @@ import hu.noroc.common.mongodb.NorocDB;
 import hu.noroc.gameworld.components.behaviour.NPC;
 import hu.noroc.gameworld.components.behaviour.Player;
 import hu.noroc.gameworld.components.scripting.ScriptedNPC;
+import hu.noroc.gameworld.components.scripting.Ticker;
 import hu.noroc.gameworld.config.WorldConfig;
 import hu.noroc.gameworld.messaging.sync.SyncMessage;
 
@@ -34,6 +35,7 @@ public class World {
     private String name;
     private int maxPlayers = 50;
 
+    private Ticker playerTicker;
     HashMap<String, Player> players = new HashMap<>();
     HashMap<Integer, Area> areas = new HashMap<>();
     HashMap<String, Spell> spells = new HashMap<>();
@@ -82,8 +84,12 @@ public class World {
         player.update();
 
         players.put(player.getId(), player);
+        playerTicker.subscribe(player);
 
         putPlayerToArea(player);
+    }
+    public void logoutCharacter(String userId, String session){
+
     }
 
     public static World initWorld(WorldConfig config){
@@ -119,6 +125,8 @@ public class World {
             LOGGER.info("Added NPC " + npc.getName() + " to area " + npcArea.getId());
         }
         LOGGER.info("Initializing NPCs finished.");
+        world.playerTicker = new Ticker();
+        world.playerTicker.start();
 
         //TODO: Spells
         return world;
@@ -128,6 +136,9 @@ public class World {
         return spells.get(spellId);
     }
 
+    public Ticker getPlayerTicker() {
+        return playerTicker;
+    }
 
     public void putPlayerToArea(Player player){
         if(players.get(player.getId()) == null)

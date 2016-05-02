@@ -85,7 +85,7 @@ public class GamingClient extends Client implements Runnable {
             LOGGER.info("Recvd message: " + message);
             try {
                 request = mapper.readValue(message, Request.class);
-            } catch (IOException e) {
+            } catch (Exception e) {
                 LOGGER.info("Invalid message.");
                 continue;
             }
@@ -125,6 +125,8 @@ public class GamingClient extends Client implements Runnable {
             case "ListWorldsRequest":
                 if(user == null)
                     return new ErrorResponse(SimpleResponse.NOT_AUTHENTICATED_ERROR, "You need to login first!");
+                if(!session.equals(request.getSession()))
+                    return new ErrorResponse(SimpleResponse.NOT_AUTHENTICATED_ERROR, "Bad session.");
                 return new ListWorldsResponse(
                         NorocEntry.worlds.entrySet().stream().map(
                                 world -> new ListWorldsResponse.WorldData(
@@ -138,6 +140,8 @@ public class GamingClient extends Client implements Runnable {
             case "ListCharactersRequest":
                 if(user == null)
                     return new ErrorResponse(SimpleResponse.NOT_AUTHENTICATED_ERROR, "You need to login first!");
+                if(!session.equals(request.getSession()))
+                    return new ErrorResponse(SimpleResponse.NOT_AUTHENTICATED_ERROR, "Bad session.");
                 try {
                     return new ListCharacterResponse(
                             NorocDB.getInstance().getCharacterRepo().findByUser(user.getId())
@@ -148,16 +152,32 @@ public class GamingClient extends Client implements Runnable {
             case "ChooseCharacterRequest":
                 if(user == null)
                     return new ErrorResponse(SimpleResponse.NOT_AUTHENTICATED_ERROR, "You need to login first!");
+                if(!session.equals(request.getSession()))
+                    return new ErrorResponse(SimpleResponse.NOT_AUTHENTICATED_ERROR, "Bad session.");
                 World world = NorocEntry.worlds.get(((ChooseCharacterRequest)request).getWorldId());
                 if(world == null)
                     return new ErrorResponse(SimpleResponse.INVALID_REQUEST, "World server not found!");
+
                 try {
                     world.loginCharacter((ChooseCharacterRequest) request, user.getId());
                 } catch (Exception e) {
                     return new ErrorResponse(SimpleResponse.INTERNAL_ERROR, "Character not found!");
                 }
                 return new SuccessResponse();
+
+            case "LogoutCharacterRequest":
+                if(!session.equals(request.getSession()))
+                    return new ErrorResponse(SimpleResponse.NOT_AUTHENTICATED_ERROR, "Bad session.");
+                //TODO
+                break;
+            case "CreateCharacterRequest":
+                if(!session.equals(request.getSession()))
+                    return new ErrorResponse(SimpleResponse.NOT_AUTHENTICATED_ERROR, "Bad session.");
+                //TODO
+                break;
             case "PauseConnection":
+                if(!session.equals(request.getSession()))
+                    return new ErrorResponse(SimpleResponse.NOT_AUTHENTICATED_ERROR, "Bad session.");
                 state = ClientState.PAUSED;
                 disconnect();
                 return new SuccessResponse(0);

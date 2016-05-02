@@ -1,6 +1,5 @@
 package hu.noroc.entry;
 
-import com.mongodb.gridfs.CLI;
 import hu.noroc.common.communication.request.ReconnectRequest;
 import hu.noroc.common.communication.request.Request;
 import hu.noroc.common.communication.response.standard.ErrorResponse;
@@ -30,6 +29,7 @@ import java.util.logging.Logger;
 /**
  * Created by Oryk on 3/28/2016.
  */
+//TODO remove sessions and also remove player from player ticker
 public class NorocEntry {
     private final static Logger LOGGER = Logger.getLogger(NorocEntry.class.getName());
 

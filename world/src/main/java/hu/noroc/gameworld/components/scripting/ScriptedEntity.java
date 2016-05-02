@@ -1,5 +1,7 @@
 package hu.noroc.gameworld.components.scripting;
 
+import hu.noroc.gameworld.components.behaviour.LivingEntity;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -8,7 +10,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-public abstract class ScriptedEntity {
+public abstract class ScriptedEntity implements LivingEntity {
 
 	/**
 	 * The stated of scripted entities 
@@ -32,7 +34,8 @@ public abstract class ScriptedEntity {
 	protected void stateChanged(ScriptedEntity.State newState){
 		
 	}
-	
+
+	@Override
 	public void tick(){
 		if (currentState != State.INIT) {
 			currentTic++;
@@ -96,7 +99,7 @@ public abstract class ScriptedEntity {
 	 * Setting deafult entity parameter from the script files
 	 * @param parameters
 	 */
-	protected abstract void setEntityDefaultParameters(Map<String,String> patameters);
+	protected abstract void setEntityDefaultParameters(Map<String,String> parameters);
 	
 	
 }
