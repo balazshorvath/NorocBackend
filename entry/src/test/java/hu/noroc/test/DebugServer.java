@@ -18,7 +18,6 @@ public class DebugServer {
 
     @Test
     public void runServer() throws InterruptedException, IOException, NoSuchAlgorithmException {
-
         DBUtils.cleanDBs();
         user = DBUtils.createUser();
         DBUtils.initClasses();

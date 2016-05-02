@@ -201,6 +201,7 @@ public class NorocEntry {
                         client.setSocket(socket);
                         new Thread(client).start();
                         LOGGER.info("Client reconnected.");
+                        return;
                     }
                 } catch (IOException e) {
                     LOGGER.info("Connection problem.");
