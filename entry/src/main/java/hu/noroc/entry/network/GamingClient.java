@@ -175,7 +175,7 @@ public class GamingClient extends Client implements Runnable {
                     return new ErrorResponse(SimpleResponse.NOT_AUTHENTICATED_ERROR, "Bad session.");
                 //TODO
                 break;
-            case "PauseConnection":
+            case "PauseRequest":
                 if(!session.equals(request.getSession()))
                     return new ErrorResponse(SimpleResponse.NOT_AUTHENTICATED_ERROR, "Bad session.");
                 state = ClientState.PAUSED;

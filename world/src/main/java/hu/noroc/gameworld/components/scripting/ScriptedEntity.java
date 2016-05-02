@@ -87,7 +87,7 @@ public abstract class ScriptedEntity implements LivingEntity {
 	 * @param x
 	 * @param y
 	 */
-	protected abstract void moveCallback(int x, int y);
+	protected abstract void moveCallback(double x, double y);
 	
 	/**
 	 * Initiates a spellcast on the entity from a script
