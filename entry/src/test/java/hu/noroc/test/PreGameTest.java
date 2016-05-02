@@ -14,6 +14,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
+
 import static org.junit.Assert.*;
 
 /**
@@ -43,8 +45,15 @@ public class PreGameTest {
     @Test
     public void testPreGame() throws Exception {
         testLogin();
+        testReconnect();
         testListings();
     }
+
+    private void testReconnect() throws Exception {
+        SimpleResponse response = client.pauseAndReconnect("localhost", 1234);
+        assertEquals(response.getCode(), SimpleResponse.SUCCESS);
+    }
+
     public void testLogin() throws Exception {
         measure.start("connection initialization");
         SimpleResponse response = client.init("localhost", 1234);

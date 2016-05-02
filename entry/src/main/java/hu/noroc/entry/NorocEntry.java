@@ -185,7 +185,7 @@ public class NorocEntry {
                         GamingClient client = (GamingClient) clients.get(request.getSession());
                         if(client == null){
                             socket.getOutputStream().write(
-                                    new ObjectMapper().writeValueAsBytes(new ErrorResponse(SimpleResponse.NOT_AUTHENTICATED_ERROR))
+                                    new ObjectMapper().writeValueAsBytes(new ErrorResponse(SimpleResponse.INTERNAL_ERROR))
                             );
                             socket.getOutputStream().flush();
                             socket.close();

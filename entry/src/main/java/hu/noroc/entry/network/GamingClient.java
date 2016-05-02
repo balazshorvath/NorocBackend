@@ -95,6 +95,8 @@ public class GamingClient extends Client implements Runnable {
             }else{
                 SimpleResponse response = preGame(request);
                 response = response == null ? new ErrorResponse(SimpleResponse.INVALID_REQUEST) : response;
+                if(response.getCode() == 0)
+                    continue;
                 try {
                     writer.write(mapper.writeValueAsString(response) + '\n');
 //                    writer.write(NetworkData.rsaData(
@@ -118,7 +120,6 @@ public class GamingClient extends Client implements Runnable {
                 user = NorocDB.getInstance().getUserRepo().login(loginRequest.getUsername(), loginRequest.getPassword());
                 if(user == null)
                     return new ErrorResponse(SimpleResponse.LOGIN_FAILED);
-                this.session = SecurityUtils.randomString(32);
                 return new LoginResponse(this.session);
             }
             case "ListWorldsRequest":
@@ -159,7 +160,7 @@ public class GamingClient extends Client implements Runnable {
             case "PauseConnection":
                 state = ClientState.PAUSED;
                 disconnect();
-                return new SuccessResponse();
+                return new SuccessResponse(0);
         }
         return null;
     }
