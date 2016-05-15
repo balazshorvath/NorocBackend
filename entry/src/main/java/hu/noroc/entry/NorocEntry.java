@@ -2,8 +2,18 @@ package hu.noroc.entry;
 
 import hu.noroc.common.communication.request.ReconnectRequest;
 import hu.noroc.common.communication.request.Request;
+import hu.noroc.common.communication.request.pregame.CreateCharacterRequest;
+import hu.noroc.common.communication.request.pregame.DeleteCharacterRequest;
+import hu.noroc.common.communication.response.ListCharacterResponse;
 import hu.noroc.common.communication.response.standard.ErrorResponse;
 import hu.noroc.common.communication.response.standard.SimpleResponse;
+import hu.noroc.common.communication.response.standard.SuccessResponse;
+import hu.noroc.common.data.model.character.CharacterClass;
+import hu.noroc.common.data.model.character.PlayerCharacter;
+import hu.noroc.common.data.model.spell.CharacterSpell;
+import hu.noroc.common.data.model.spell.Spell;
+import hu.noroc.common.data.model.user.User;
+import hu.noroc.common.data.repository.SpellRepo;
 import hu.noroc.common.mongodb.NorocDB;
 import hu.noroc.entry.config.EntryConfig;
 import hu.noroc.entry.network.Client;
@@ -23,6 +33,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -219,5 +230,39 @@ public class NorocEntry {
             clients.put(client.getSession(), client);
             LOGGER.info("Client connected.");
         });
+    }
+
+    public static SimpleResponse createCharacter(CreateCharacterRequest request, User user) throws IOException {
+        if(database.getCharacterRepo().findBy("name", request.getName()).size() != 0)
+            return new ErrorResponse(SimpleResponse.NAME_TAKEN);
+        CharacterClass characterClass = database.getCharacterClassRepo().findByCode(request.getClassId());
+        if(characterClass == null)
+            return new ErrorResponse(SimpleResponse.INVALID_REQUEST);
+
+        PlayerCharacter playerCharacter = new PlayerCharacter(request.getName(), user.getId(), request.getClassId());
+
+        SpellRepo spellRepo = database.getSpellRepo();
+        for(String s : characterClass.getSpells()){
+            CharacterSpell characterSpell = new CharacterSpell(spellRepo.findById(s));
+            characterSpell.setOwnerId(user.getId());
+
+            playerCharacter.getSpells().put(s, characterSpell);
+        }
+        database.getCharacterRepo().insert(playerCharacter);
+
+        return new ListCharacterResponse(
+                database.getCharacterRepo().findByUser(user.getId())
+        );
+    }
+
+    public static SimpleResponse deleteCharacter(DeleteCharacterRequest request, User user) throws IOException {
+        PlayerCharacter character = database.getCharacterRepo().findById(request.getCharacterId());
+
+        if(!character.getUserId().equals(user.getId()))
+            return new ErrorResponse(SimpleResponse.INTERNAL_ERROR);
+
+        database.getCharacterRepo().delete(request.getCharacterId());
+
+        return new SuccessResponse();
     }
 }

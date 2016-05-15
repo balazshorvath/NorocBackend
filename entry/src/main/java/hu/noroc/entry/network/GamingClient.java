@@ -1,6 +1,8 @@
 package hu.noroc.entry.network;
 
 import hu.noroc.common.communication.request.pregame.ChooseCharacterRequest;
+import hu.noroc.common.communication.request.pregame.CreateCharacterRequest;
+import hu.noroc.common.communication.request.pregame.DeleteCharacterRequest;
 import hu.noroc.common.communication.response.ListCharacterResponse;
 import hu.noroc.common.communication.response.ListWorldsResponse;
 import hu.noroc.common.communication.response.LoginResponse;
@@ -32,6 +34,8 @@ public class GamingClient extends Client implements Runnable {
     public GamingClient(Socket socket, String session, User user) {
         super(socket, session, user);
     }
+
+    private boolean inGame = false;
 
     public void initRSA(){
         byte[] buffer = new byte[140];
@@ -90,7 +94,7 @@ public class GamingClient extends Client implements Runnable {
                 continue;
             }
 
-            if(characterId != null && !"".equals(characterId)){
+            if(inGame){
                 NorocEntry.worlds.get(this.worldId).newClientRequest(request);
             }else{
                 SimpleResponse response = preGame(request);
@@ -149,6 +153,22 @@ public class GamingClient extends Client implements Runnable {
                 } catch (IOException e) {
                     return new ErrorResponse();
                 }
+            case "CreateCharacterRequest":
+                if(user == null)
+                    return new ErrorResponse(SimpleResponse.NOT_AUTHENTICATED_ERROR, "You need to login first!");
+                try {
+                    return NorocEntry.createCharacter((CreateCharacterRequest) request, user);
+                } catch (IOException e) {
+                    return new ErrorResponse();
+                }
+            case "DeleteCharacterRequest":
+                if(user == null)
+                    return new ErrorResponse(SimpleResponse.NOT_AUTHENTICATED_ERROR, "You need to login first!");
+                try {
+                    return NorocEntry.deleteCharacter((DeleteCharacterRequest) request, user);
+                } catch (IOException e) {
+                    return new ErrorResponse();
+                }
             case "ChooseCharacterRequest":
                 if(user == null)
                     return new ErrorResponse(SimpleResponse.NOT_AUTHENTICATED_ERROR, "You need to login first!");
@@ -163,17 +183,14 @@ public class GamingClient extends Client implements Runnable {
                 } catch (Exception e) {
                     return new ErrorResponse(SimpleResponse.INTERNAL_ERROR, "Character not found!");
                 }
+                inGame = true;
                 return new SuccessResponse();
 
             case "LogoutCharacterRequest":
                 if(!session.equals(request.getSession()))
                     return new ErrorResponse(SimpleResponse.NOT_AUTHENTICATED_ERROR, "Bad session.");
                 //TODO
-                break;
-            case "CreateCharacterRequest":
-                if(!session.equals(request.getSession()))
-                    return new ErrorResponse(SimpleResponse.NOT_AUTHENTICATED_ERROR, "Bad session.");
-                //TODO
+                inGame = false;
                 break;
             case "PauseRequest":
                 if(!session.equals(request.getSession()))

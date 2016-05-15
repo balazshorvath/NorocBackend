@@ -23,8 +23,12 @@ import org.codehaus.jackson.annotate.JsonTypeInfo;
 public abstract class SimpleResponse {
     public static final int INTERNAL_ERROR = 200;
     public static final int INVALID_REQUEST = 201;
+
     public static final int LOGIN_FAILED = 210;
     public static final int NOT_AUTHENTICATED_ERROR = 211;
+
+    public static final int NAME_TAKEN = 220;
+
     public static final int SUCCESS = 100;
 
     protected int code;
