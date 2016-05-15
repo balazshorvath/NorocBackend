@@ -99,8 +99,9 @@ public class GamingClient extends Client implements Runnable {
             }else{
                 SimpleResponse response = preGame(request);
                 response = response == null ? new ErrorResponse(SimpleResponse.INVALID_REQUEST) : response;
+                //if response code is 0, there was a pause request
                 if(response.getCode() == 0)
-                    continue;
+                    break;
                 try {
                     writer.write(mapper.writeValueAsString(response) + '\n');
 //                    writer.write(NetworkData.rsaData(
