@@ -1,12 +1,16 @@
 package hu.noroc.gameworld.components.behaviour;
 
+import hu.noroc.common.communication.message.models.PlayerCharacterResponse;
 import hu.noroc.common.communication.request.Request;
 import hu.noroc.common.communication.request.ingame.*;
+import hu.noroc.gameworld.messaging.DataEvent;
+import hu.noroc.gameworld.messaging.InitResponse;
 import hu.noroc.common.data.model.character.CharacterClass;
 import hu.noroc.common.data.model.character.CharacterStat;
 import hu.noroc.common.data.model.character.PlayerCharacter;
 import hu.noroc.common.data.model.spell.CharacterSpell;
 import hu.noroc.common.data.model.spell.SpellEffect;
+import hu.noroc.common.mongodb.NorocDB;
 import hu.noroc.gameworld.Area;
 import hu.noroc.gameworld.World;
 import hu.noroc.gameworld.components.behaviour.spell.BuffLogic;
@@ -17,6 +21,7 @@ import hu.noroc.gameworld.messaging.directional.AttackEvent;
 import hu.noroc.gameworld.messaging.directional.DirectionalEvent;
 import hu.noroc.gameworld.messaging.sync.SyncMessage;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -36,7 +41,7 @@ public class Player implements Being, LivingEntity {
 
     private int nextCast;
     private CharacterSpell casting;
-    private int nextWayPoint = 0;
+    private int nextWayPoint = -1;
     private int nextWayPointTime;
     private double[][] movement;
 
@@ -45,6 +50,7 @@ public class Player implements Being, LivingEntity {
 
     public void update(){
         //TODO: update stats, spells based on items, buffs, debuffs, talents (if there will be such thing)
+        this.stats = characterClass.getStat();
     }
 
     @Override
@@ -69,7 +75,7 @@ public class Player implements Being, LivingEntity {
             casting.setCooldown(nextCast);
 
             movement = null;
-            nextWayPoint = 0;
+            nextWayPoint = -1;
         }else if (request instanceof PlayerInteractRequest){
             PlayerInteractRequest playerInteractRequest = (PlayerInteractRequest) request;
 
@@ -80,21 +86,35 @@ public class Player implements Being, LivingEntity {
                 return;
             PlayerMoveRequest playerMoveRequest = (PlayerMoveRequest) request;
 
-            this.movement = playerMoveRequest.getPath();
+            if(playerMoveRequest.getPath() == null || playerMoveRequest.getPath().length < 1)
+                return;
 
-            DirectionalEvent event = new DirectionalEvent();
-            event.setX(movement[0][0]);
-            event.setY(movement[0][1]);
-            event.setDirectionalType(DirectionalEvent.DirectionalType.MOVING_TO);
-            nextWayPoint = 1;
-            nextWayPointTime = Movement.calcTime(movement[0][0], movement[0][1], movement[1][0], movement[1][1], stats.speed);
-            world.newSyncMessage(new SyncMessage(session, event));
+            int start = 0;
+            if(playerMoveRequest.getPath()[0].getX() == getX() && playerMoveRequest.getPath()[0].getY() == getY())
+                start = 1;
+            this.movement = new double[playerMoveRequest.getPath().length - start][2];
+
+            for (int i = start; i < playerMoveRequest.getPath().length; i++) {
+                this.movement[i - start][0] = playerMoveRequest.getPath()[i].getX();
+                this.movement[i - start][1] = playerMoveRequest.getPath()[i].getY();
+            }
+//            DirectionalEvent event = new DirectionalEvent();
+//            event.setX(movement[0][0]);
+//            event.setY(movement[0][1]);
+//            event.setBeing(this);
+//            event.setDirectionalType(DirectionalEvent.DirectionalType.MOVING_TO);
+//            nextWayPointTime = Movement.calcTime(getX(), getY(), movement[0][0], movement[0][1], stats.speed);
+//            world.newSyncMessage(new SyncMessage(session, event));
+            nextWayPointTime = 0;
+            nextWayPoint = 0;
         }else if (request instanceof PlayerEquipRequest){
             PlayerEquipRequest playerEquipRequest = (PlayerEquipRequest) request;
 
         }else if(request instanceof InitRequest){
             InitRequest initRequest = (InitRequest) request;
-
+            InitResponse response = new InitResponse();
+            response.setSelf(new InitResponse.InGamePlayer(this));
+            world.newSyncMessage(new SyncMessage(session, response));
         }
     }
 
@@ -112,8 +132,9 @@ public class Player implements Being, LivingEntity {
     }
 
     @Override
-    public void tick() {
-        if(casting != null && tickCount++ == nextCast){
+    public void tick(){
+        tickCount++;
+        if(casting != null && tickCount == nextCast){
             casting.createLogics().forEach(spellLogic -> {
                 AttackEvent event = new AttackEvent();
 
@@ -133,39 +154,76 @@ public class Player implements Being, LivingEntity {
             world.newSyncMessage(new SyncMessage(session, event));
             casting = null;
         }
-        if(nextWayPoint != 0 && nextWayPointTime == tickCount){
-            if(movement.length != nextWayPoint) {
+        if(nextWayPoint != -1 && nextWayPointTime <= tickCount){
+            if(nextWayPoint == 0){
                 nextWayPointTime = tickCount + Movement.calcTime(
+                        getX(), getY(),
                         movement[nextWayPoint][0], movement[nextWayPoint][1],
-                        movement[nextWayPoint + 1][0], movement[nextWayPoint + 1][1],
+                        stats.speed
+                );
+                sendMovingTo();
+
+                nextWayPoint++;
+            }else if(movement.length > nextWayPoint) {
+                this.setX(movement[nextWayPoint - 1][0]);
+                this.setY(movement[nextWayPoint - 1][1]);
+
+                nextWayPointTime = tickCount + Movement.calcTime(
+                        getX(), getY(),
+                        movement[nextWayPoint][0], movement[nextWayPoint][1],
                         stats.speed
                 );
 
-                DirectionalEvent event = new DirectionalEvent();
-                event.setX(movement[nextWayPoint][0]);
-                event.setY(movement[nextWayPoint][1]);
-                event.setDirectionalType(DirectionalEvent.DirectionalType.CURRENTLY_AT);
-
-                world.newSyncMessage(new SyncMessage(session, event));
-                area.newMessage(event);
-
-                event = new DirectionalEvent();
-                event.setX(movement[nextWayPoint + 1][0]);
-                event.setY(movement[nextWayPoint + 1][1]);
-                event.setDirectionalType(DirectionalEvent.DirectionalType.MOVING_TO);
+                sendCurrentlyAt();
+                sendMovingTo();
 
                 nextWayPoint++;
             }else{
-                DirectionalEvent event = new DirectionalEvent();
-                event.setX(movement[nextWayPoint][0]);
-                event.setY(movement[nextWayPoint][1]);
-                event.setDirectionalType(DirectionalEvent.DirectionalType.CURRENTLY_AT);
-                nextWayPoint = 0;
+                this.setX(movement[nextWayPoint - 1][0]);
+                this.setY(movement[nextWayPoint - 1][1]);
+
+                sendCurrentlyAt();
+                nextWayPoint = -1;
                 movement = null;
             }
         }
         effects.forEach(spellEffect -> spellEffect.tick(this));
 
+    }
+
+    private void sendCurrentlyAt(){
+        DirectionalEvent event = new DirectionalEvent();
+        event.setX(getX());
+        event.setY(getY());
+        event.setBeing(this);
+        event.setDirectionalType(DirectionalEvent.DirectionalType.CURRENTLY_AT);
+
+        area.newMessage(event);
+    }
+    private void sendMovingTo(){
+        DirectionalEvent event = new DirectionalEvent();
+        event.setX(movement[nextWayPoint][0]);
+        event.setY(movement[nextWayPoint][1]);
+        event.setBeing(this);
+        event.setDirectionalType(DirectionalEvent.DirectionalType.MOVING_TO);
+
+        area.newMessage(event);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Player player = (Player) o;
+
+        return session.equals(player.session);
+
+    }
+
+    @Override
+    public int hashCode() {
+        return session.hashCode();
     }
 
     public PlayerCharacter getCharacter() {
@@ -190,6 +248,10 @@ public class Player implements Being, LivingEntity {
 
     public void setStats(CharacterStat stats) {
         this.stats = stats;
+    }
+
+    public Area currentArea(){
+        return area;
     }
 
     @Override

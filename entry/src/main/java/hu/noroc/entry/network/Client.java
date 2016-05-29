@@ -1,6 +1,7 @@
 package hu.noroc.entry.network;
 
 import hu.noroc.common.data.model.user.User;
+import hu.noroc.entry.NorocEntry;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -34,7 +35,10 @@ public class Client {
         this.user = user;
     }
 
-    public void disconnect()  {
+    public void disconnect() {
+        if(characterId != null && !characterId.isEmpty()){
+            NorocEntry.worlds.get(worldId).logoutCharacter(user.getId(), session);
+        }
         this.online = false;
         if(this.socket != null && !this.socket.isClosed()){
             try {
@@ -43,6 +47,8 @@ public class Client {
             }
         }
 
+        characterId = null;
+        worldId = null;
     }
 
     public void forceDisconnect() {

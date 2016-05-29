@@ -9,7 +9,6 @@ import java.util.List;
  * Created by Oryk on 1/11/2016.
  */
 public class CharacterClass {
-
     private String id;
     private String code;
     private String name;

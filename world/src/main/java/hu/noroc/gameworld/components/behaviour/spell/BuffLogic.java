@@ -37,4 +37,7 @@ public class BuffLogic extends SpellLogic {
         being.getEffects().add(new BuffLogic(this));
     }
 
+    public int getTickCount() {
+        return tickCount;
+    }
 }

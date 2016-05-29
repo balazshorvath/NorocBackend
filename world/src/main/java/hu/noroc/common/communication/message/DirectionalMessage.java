@@ -9,6 +9,10 @@ public class DirectionalMessage extends Message {
     protected double x, y;
     protected DirectionalEvent.DirectionalType directionalType;
 
+    public DirectionalMessage() {
+        this.type = DirectionalMessage.class.getSimpleName();
+    }
+
     public double getX() {
         return x;
     }

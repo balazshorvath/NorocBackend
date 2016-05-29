@@ -1,11 +1,15 @@
 package hu.noroc.gameworld;
 
 import hu.noroc.common.communication.message.EntityType;
+import hu.noroc.common.communication.message.models.PlayerCharacterResponse;
 import hu.noroc.gameworld.components.behaviour.Player;
 import hu.noroc.gameworld.components.scripting.ScriptedNPC;
+import hu.noroc.gameworld.messaging.AreaChangedEvent;
+import hu.noroc.gameworld.messaging.DataEvent;
 import hu.noroc.gameworld.messaging.Event;
 import hu.noroc.gameworld.messaging.directional.AttackEvent;
 import hu.noroc.gameworld.messaging.directional.DirectionalEvent;
+import hu.noroc.gameworld.messaging.sync.SyncMessage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +57,7 @@ public class Area {
             Event message = null;
             while(World.isRunning()){
                 try {
-                    message = areaMessenger.poll(5, TimeUnit.SECONDS);
+                    message = areaMessenger.pollFirst(5, TimeUnit.SECONDS);
                 } catch (InterruptedException e) {
                     continue;
                 }
@@ -62,6 +66,9 @@ public class Area {
                 }
                 if(message instanceof AttackEvent){
                     applySpell((AttackEvent) message);
+                }else if(message instanceof DataEvent){
+                    final Event finalMessage = message;
+                    players.forEach(player -> player.newEvent(finalMessage));
                 }else {
                     final Event finalMessage = message;
                     players.forEach(player -> {
@@ -103,12 +110,15 @@ public class Area {
         npcs.forEach(scriptedNPC -> {
             // Target - Entity
             double xpt = scriptedNPC.getEntity().getX() - xp;
-            double absVecpt = Math.sqrt((xpt + scriptedNPC.getEntity().getY() - yp));
+            double ypt = scriptedNPC.getEntity().getY() - yp;
+            double absVecpt = Math.sqrt((xpt*xpt + ypt*ypt));
 
             if (absVecpt > r)
                 return;
-            if (as == 180.0)
+            if (as == 180.0) {
+                scriptedNPC.getEntity().attacked(event.getEffect(), event.getBeing());
                 return;
+            }
 
             double apt = Math.acos(xpt / absVecpt);
 
@@ -118,13 +128,15 @@ public class Area {
         players.forEach(player -> {
             // Target - Entity
             double xpt = player.getX() - xp;
-            double absVecpt = Math.sqrt((xpt + player.getY() - yp));
+            double ypt = player.getY() - yp;
+            double absVecpt = Math.sqrt((xpt * xpt + ypt * ypt));
 
             if (absVecpt > r)
                 return;
-            if (as == 180.0)
+            if (as == 180.0) {
+                player.attacked(event.getEffect(), event.getBeing());
                 return;
-
+            }
             double apt = Math.acos(xpt / absVecpt);
 
             if ((apt <= (ad + as)) && ((ad - as) <= apt))
@@ -133,8 +145,14 @@ public class Area {
 
     }
 
+    public void newPlayer(Player player){
+        this.players.forEach(player1 -> player.newEvent(new DataEvent(new PlayerCharacterResponse(player1.getCharacter()), player1.getId())));
+        this.newMessage(new DataEvent(new PlayerCharacterResponse(player.getCharacter()), player.getId()));
+        this.players.add(player);
+    }
+
     public void newMessage(Event message){
-        areaMessenger.push(message);
+        areaMessenger.addLast(message);
     }
 
     public List<Player> getPlayers() {

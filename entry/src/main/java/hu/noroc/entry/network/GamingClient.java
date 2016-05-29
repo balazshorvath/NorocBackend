@@ -1,5 +1,7 @@
 package hu.noroc.entry.network;
 
+import hu.noroc.common.communication.request.PauseRequest;
+import hu.noroc.common.communication.request.ReconnectRequest;
 import hu.noroc.common.communication.request.pregame.ChooseCharacterRequest;
 import hu.noroc.common.communication.request.pregame.CreateCharacterRequest;
 import hu.noroc.common.communication.request.pregame.DeleteCharacterRequest;
@@ -36,6 +38,7 @@ public class GamingClient extends Client implements Runnable {
     }
 
     private boolean inGame = false;
+    private World world;
 
     public void initRSA(){
         byte[] buffer = new byte[140];
@@ -58,6 +61,7 @@ public class GamingClient extends Client implements Runnable {
         BufferedReader reader = null;
         BufferedWriter writer = null;
         ObjectMapper mapper = new ObjectMapper();
+        int fails = 0;
 //        initRSA();
         online = true;
         state = ClientState.CONNECTED;
@@ -76,6 +80,11 @@ public class GamingClient extends Client implements Runnable {
         while(online){
             try {
                 message = reader.readLine();
+                if(message == null && ++fails > 10) {
+                    LOGGER.info("Connection problem.");
+                    state = ClientState.DISCONNECTED;
+                    break;
+                }
             } catch (SocketTimeoutException e) {
                 LOGGER.info("Client timeout.");
                 state = ClientState.TIMED_OUT;
@@ -94,8 +103,8 @@ public class GamingClient extends Client implements Runnable {
                 continue;
             }
 
-            if(inGame){
-                NorocEntry.worlds.get(this.worldId).newClientRequest(request);
+            if(inGame && !((request instanceof PauseRequest) || (request instanceof ReconnectRequest))){
+                world.newClientRequest(request);
             }else{
                 SimpleResponse response = preGame(request);
                 response = response == null ? new ErrorResponse(SimpleResponse.INVALID_REQUEST) : response;
@@ -175,7 +184,7 @@ public class GamingClient extends Client implements Runnable {
                     return new ErrorResponse(SimpleResponse.NOT_AUTHENTICATED_ERROR, "You need to login first!");
                 if(!session.equals(request.getSession()))
                     return new ErrorResponse(SimpleResponse.NOT_AUTHENTICATED_ERROR, "Bad session.");
-                World world = NorocEntry.worlds.get(((ChooseCharacterRequest)request).getWorldId());
+                world = NorocEntry.worlds.get(((ChooseCharacterRequest)request).getWorldId());
                 if(world == null)
                     return new ErrorResponse(SimpleResponse.INVALID_REQUEST, "World server not found!");
 
@@ -184,6 +193,8 @@ public class GamingClient extends Client implements Runnable {
                 } catch (Exception e) {
                     return new ErrorResponse(SimpleResponse.INTERNAL_ERROR, "Character not found!");
                 }
+                characterId = session;
+                worldId = ((ChooseCharacterRequest) request).getWorldId();
                 inGame = true;
                 return new SuccessResponse();
 
@@ -192,6 +203,8 @@ public class GamingClient extends Client implements Runnable {
                     return new ErrorResponse(SimpleResponse.NOT_AUTHENTICATED_ERROR, "Bad session.");
                 //TODO
                 inGame = false;
+                characterId = null;
+                worldId = null;
                 break;
             case "PauseRequest":
                 if(!session.equals(request.getSession()))

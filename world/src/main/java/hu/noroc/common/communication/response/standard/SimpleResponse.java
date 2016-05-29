@@ -3,7 +3,7 @@ package hu.noroc.common.communication.response.standard;
 import hu.noroc.common.communication.response.ListCharacterResponse;
 import hu.noroc.common.communication.response.ListWorldsResponse;
 import hu.noroc.common.communication.response.LoginResponse;
-import hu.noroc.common.communication.response.InitResponse;
+import hu.noroc.gameworld.messaging.InitResponse;
 import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 

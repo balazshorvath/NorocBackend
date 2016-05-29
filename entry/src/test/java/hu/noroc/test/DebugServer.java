@@ -15,13 +15,16 @@ import java.security.NoSuchAlgorithmException;
 public class DebugServer {
     TestServer server;
     private User user;
+    private User user1;
 
     @Test
     public void runServer() throws InterruptedException, IOException, NoSuchAlgorithmException {
         DBUtils.cleanDBs();
         user = DBUtils.createUser();
+        user1 = DBUtils.createUser();
         DBUtils.initClasses();
         DBUtils.createCharacter("WARRIOR", user.getId());
+        DBUtils.createCharacter("WARRIOR", user1.getId());
 
         server = new TestServer();
         server.startGame();

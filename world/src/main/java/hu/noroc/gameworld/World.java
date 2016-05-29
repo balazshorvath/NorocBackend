@@ -1,5 +1,7 @@
 package hu.noroc.gameworld;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import hu.noroc.common.communication.request.Request;
 import hu.noroc.common.communication.request.pregame.ChooseCharacterRequest;
 import hu.noroc.common.data.model.character.CharacterClass;
@@ -14,10 +16,14 @@ import hu.noroc.gameworld.components.behaviour.Player;
 import hu.noroc.gameworld.components.scripting.ScriptedNPC;
 import hu.noroc.gameworld.components.scripting.Ticker;
 import hu.noroc.gameworld.config.WorldConfig;
+import hu.noroc.gameworld.messaging.AreaChangedEvent;
+import hu.noroc.gameworld.messaging.DataEvent;
 import hu.noroc.gameworld.messaging.sync.SyncMessage;
 
 import java.util.HashMap;
 import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 /**
@@ -45,7 +51,7 @@ public class World {
     private SpellRepo spellRepo;
 
     /* Outgoing messages */
-    private BlockingDeque<SyncMessage> clientMessages;
+    private BlockingDeque<SyncMessage> clientMessages = new LinkedBlockingDeque<>();
 
     private World() {
     }
@@ -61,11 +67,15 @@ public class World {
     }
 
     public void newSyncMessage(SyncMessage message){
-        clientMessages.push(message);
+        clientMessages.addLast(message);
     }
 
     public SyncMessage getSyncMessage(){
-        return clientMessages.poll();
+        try {
+            return clientMessages.pollFirst(5, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            return null;
+        }
     }
 
     public void loginCharacter(ChooseCharacterRequest request, String userId) throws Exception{
@@ -80,16 +90,22 @@ public class World {
         player.setId(request.getSession());
         player.setName(playerCharacter.getName());
         player.setWorld(this);
+        //TODO
+        player.setViewDist(500.0);
 
         player.update();
 
         players.put(player.getId(), player);
         playerTicker.subscribe(player);
-
-        putPlayerToArea(player);
     }
     public void logoutCharacter(String userId, String session){
-
+        Player player = players.get(session);
+        if(player != null && player.currentArea() != null){
+            this.players.remove(player.getId());
+            player.currentArea().newMessage(new DataEvent(null, player.getId()));
+            player.currentArea().getPlayers().remove(player);
+            playerTicker.unsubscribe(player);
+        }
     }
 
     public static World initWorld(WorldConfig config){
@@ -151,10 +167,11 @@ public class World {
         if(area == null)
             return;
 
-        if(player.getArea() != null)
-            areas.get(player.getArea()).getPlayers().remove(player);
+        if(player.currentArea() != null)
+            player.currentArea().getPlayers().remove(player);
 
-        area.getPlayers().add(player);
+        player.newEvent(new AreaChangedEvent());
+        area.newPlayer(player);
         player.setArea(area);
     }
 

@@ -14,7 +14,10 @@ import org.codehaus.jackson.annotate.JsonTypeInfo;
 @JsonSubTypes({
     @JsonSubTypes.Type(value = AttackMessage.class, name = "AttackMessage"),
     @JsonSubTypes.Type(value = DirectionalMessage.class, name = "DirectionalMessage"),
-    @JsonSubTypes.Type(value = TargetedMessage.class, name = "TargetedMessage")
+    @JsonSubTypes.Type(value = TargetedMessage.class, name = "TargetedMessage"),
+    @JsonSubTypes.Type(value = DataMessage.class, name = "DataMessage"),
+    @JsonSubTypes.Type(value = ClearMessage.class, name = "ClearMessage"),
+    @JsonSubTypes.Type(value = InitMessage.class, name = "InitMessage")
 })
 public class Message {
     protected String type;

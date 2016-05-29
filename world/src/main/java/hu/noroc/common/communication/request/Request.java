@@ -1,10 +1,7 @@
 package hu.noroc.common.communication.request;
 
 import hu.noroc.common.communication.request.ingame.*;
-import hu.noroc.common.communication.request.pregame.ChooseCharacterRequest;
-import hu.noroc.common.communication.request.pregame.ListCharactersRequest;
-import hu.noroc.common.communication.request.pregame.ListWorldsRequest;
-import hu.noroc.common.communication.request.pregame.LoginRequest;
+import hu.noroc.common.communication.request.pregame.*;
 
 import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
@@ -24,6 +21,9 @@ import org.codehaus.jackson.annotate.JsonTypeInfo;
         @JsonSubTypes.Type(value = ListWorldsRequest.class, name = "ListWorldsRequest"),
         @JsonSubTypes.Type(value = ListCharactersRequest.class, name = "ListCharactersRequest"),
         @JsonSubTypes.Type(value = ChooseCharacterRequest.class, name = "ChooseCharacterRequest"),
+        /*Character c/d*/
+        @JsonSubTypes.Type(value = CreateCharacterRequest.class, name = "CreateCharacterRequest"),
+        @JsonSubTypes.Type(value = DeleteCharacterRequest.class, name = "DeleteCharacterRequest"),
         /*In-game*/
         @JsonSubTypes.Type(value = InitRequest.class, name = "InitRequest"),
         @JsonSubTypes.Type(value = PlayerAttackRequest.class, name = "PlayerAttackRequest"),

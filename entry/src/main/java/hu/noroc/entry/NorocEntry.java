@@ -32,10 +32,12 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Created by Oryk on 3/28/2016.
@@ -105,13 +107,15 @@ public class NorocEntry {
                     msg = world.getSyncMessage();
                     client = clients.get(msg.getSession());
                     stream = client.getSocket().getOutputStream();
-                    stream.write((
-                            mapper.writeValueAsString(
-                                    msg.getEvent().createMessage()
-                            ) + '\n'
-                    ).getBytes());
+
+                    String shit = mapper.writeValueAsString(
+                            msg.getEvent().createMessage()
+                    );
+                    stream.write((shit + '\n').getBytes());
                     stream.flush();
+//                    LOGGER.info("Sent message to " + msg.getSession() + ": " + shit);
                 } catch(Exception ignored) {
+                    if(! (ignored instanceof NullPointerException)) ignored.printStackTrace();
                 }
             }
             LOGGER.info("World listener(" + world.getName() + ") is down.");
@@ -239,16 +243,28 @@ public class NorocEntry {
         if(characterClass == null)
             return new ErrorResponse(SimpleResponse.INVALID_REQUEST);
 
-        PlayerCharacter playerCharacter = new PlayerCharacter(request.getName(), user.getId(), request.getClassId());
+        PlayerCharacter character = new PlayerCharacter(request.getName(), user.getId(), request.getClassId());
 
-        SpellRepo spellRepo = database.getSpellRepo();
-        for(String s : characterClass.getSpells()){
-            CharacterSpell characterSpell = new CharacterSpell(spellRepo.findById(s));
-            characterSpell.setOwnerId(user.getId());
-
-            playerCharacter.getSpells().put(s, characterSpell);
+        List<Spell> spells = new ArrayList<>();
+        for (String s : characterClass.getSpells()) {
+            Spell spell = database.getSpellRepo().findById(s);
+            if(spell != null)
+                spells.add(spell);
         }
-        database.getCharacterRepo().insert(playerCharacter);
+
+        character.setX(256.0);
+        character.setY(170.0);
+        character.setSpells(
+                spells.stream().collect(
+                        Collectors.toMap(
+                                Spell::getId,
+                                CharacterSpell::new
+                        )
+                )
+        );
+        character.setXp(0);
+
+        database.getCharacterRepo().insert(character);
 
         return new ListCharacterResponse(
                 database.getCharacterRepo().findByUser(user.getId())

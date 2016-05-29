@@ -12,17 +12,45 @@ import hu.noroc.common.communication.request.Request;
  * Created by Oryk on 3/28/2016.
  */
 public class PlayerMoveRequest extends Request {
-    private double[][] path;
+    private Vector[] path;
 
     public PlayerMoveRequest() {
         this.type = PlayerMoveRequest.class.getSimpleName();
     }
 
-    public double[][] getPath() {
+    public Vector[] getPath() {
         return path;
     }
 
-    public void setPath(double[][] path) {
+    public void setPath(Vector[] path) {
         this.path = path;
+    }
+
+    public static class Vector{
+        private double x, y;
+
+        public Vector() {
+        }
+
+        public Vector(double x, double y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        public double getX() {
+            return x;
+        }
+
+        public void setX(double x) {
+            this.x = x;
+        }
+
+        public double getY() {
+            return y;
+        }
+
+        public void setY(double y) {
+            this.y = y;
+        }
     }
 }
