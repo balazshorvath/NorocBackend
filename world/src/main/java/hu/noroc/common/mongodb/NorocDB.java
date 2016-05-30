@@ -56,6 +56,10 @@ public class NorocDB {
         return instance;
     }
     public static NorocDB getInstance(){
+        if(instance == null){
+            instance = new NorocDB("localhost", "Noroc");
+            instance.initialize();
+        }
         return instance;
     }
 

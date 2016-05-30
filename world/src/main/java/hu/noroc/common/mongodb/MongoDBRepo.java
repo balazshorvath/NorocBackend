@@ -12,9 +12,8 @@ import java.util.List;
 /**
  * Created by Oryk on 11/26/2015.
  */
-public class MongoDBRepo<T, ID> implements MongoRepo<T, ID> {
+public class MongoDBRepo<T, ID> implements Repository<T, ID> {
     protected JacksonDBCollection<T, ID> collection;
-    protected ObjectMapper json = new ObjectMapper();
     protected final Class<T> documentClass;
     protected final Class<ID> indexClass;
 
@@ -22,9 +21,6 @@ public class MongoDBRepo<T, ID> implements MongoRepo<T, ID> {
         Class<?>[] typeArguments = TypeResolver.resolveRawArguments(MongoDBRepo.class, getClass());
         this.documentClass = (Class<T>) typeArguments[0];
         this.indexClass = (Class<ID>) typeArguments[1];
-
-        String[] tmp = documentClass.getName().split("\\.");
-        String name = tmp[tmp.length - 1];
 
         collection = JacksonDBCollection.wrap(
                 database.getCollection(documentClass.getSimpleName()),
