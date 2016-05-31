@@ -23,14 +23,14 @@ public class AttackEvent extends DirectionalEvent {
         message.setEntityType(entity);
 
         message.setSpellId(effect.getSpellId());
-        message.setAlpha(alpha);
-        message.setRadius(radius);
 
         return message;
     }
 
-    public AttackEvent() {
-        this.directionalType = DirectionalType.ATTACK;
+    public AttackEvent(DirectionalType directionalType) {
+        if(directionalType != DirectionalType.ATTACK && directionalType != DirectionalType.CAST)
+            this.directionalType = DirectionalType.ATTACK;
+        this.directionalType = directionalType;
     }
 
     public SpellLogic getEffect() {

@@ -13,6 +13,7 @@ import java.util.List;
  */
 public class Spell {
     protected String id;
+    protected int ordinal;
     protected String name;
     protected String description;
     protected double radius, alpha;
@@ -38,6 +39,7 @@ public class Spell {
         this.effect = spell.effect;
         this.acceptedUpgrades = spell.acceptedUpgrades;
         this.maxUpgrades = spell.maxUpgrades;
+        this.ordinal = spell.ordinal;
     }
 
     @ObjectId
@@ -50,6 +52,14 @@ public class Spell {
     @JsonProperty("_id")
     public void setId(String id) {
         this.id = id;
+    }
+
+    public int getOrdinal() {
+        return ordinal;
+    }
+
+    public void setOrdinal(int ordinal) {
+        this.ordinal = ordinal;
     }
 
     public SpellEffect getEffect() {

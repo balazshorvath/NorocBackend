@@ -31,10 +31,10 @@ public class DBUtils {
         User user = new User();
 
         user.setEmail("mail" + userCounter + "@gmail.com");
-        user.setUsername("user" + userCounter);
+        user.setUsername("u" + userCounter);
         user.setPassword(
                 new String(Base64.getEncoder().encode(
-                        MessageDigest.getInstance("SHA-256").digest("password".getBytes())
+                        MessageDigest.getInstance("SHA-256").digest("p".getBytes())
                 ))
         );
 
@@ -79,7 +79,7 @@ public class DBUtils {
 
         // Warrior stats
         stat.health = 500;
-        stat.mana = 200;
+        stat.mana = 0;
 
         stat.armor = 10;
         stat.magicResist = 0;
@@ -94,6 +94,40 @@ public class DBUtils {
         // Warrior class
         characterClass.setCode("WARRIOR");
         characterClass.setName("Warrior");
+
+        characterClass.setSpells(
+                new ArrayListBuilder<String>(4)
+                        .add(spell.get(0).getId())
+                        .add(spell.get(1).getId())
+                        .add(spell.get(2).getId())
+                        .add(spell.get(3).getId())
+                        .get()
+        );
+        characterClass.setStat(stat);
+        db.getCharacterClassRepo().insert(characterClass);
+
+        characterClass = new CharacterClass();
+        stat = new CharacterStat();
+        // Da default spell
+        spell = initRogueSpell();
+
+        // Warrior stats
+        stat.health = 400;
+        stat.mana = 200;
+
+        stat.armor = 5;
+        stat.magicResist = 5;
+
+        stat.intellect = 0;
+        stat.spirit = 0;
+        stat.stamina = 0;
+        stat.strength = 0;
+
+        stat.speed = 0.04;
+
+        // Warrior class
+        characterClass.setCode("ROGUE");
+        characterClass.setName("Rogue");
 
         characterClass.setSpells(
                 new ArrayListBuilder<String>(4)
@@ -129,6 +163,7 @@ public class DBUtils {
 
         // Spell
         spell.setName("Slam");
+        spell.setOrdinal(0);
         // This should be generated: spell.setDescription("");
         // also because of the upgrades (+ effects)
 
@@ -170,6 +205,7 @@ public class DBUtils {
 
         // Spell
         spell.setName("Mega Slam");
+        spell.setOrdinal(1);
         // This should be generated: spell.setDescription("");
         // also because of the upgrades (+ effects)
 
@@ -208,7 +244,8 @@ public class DBUtils {
         effect.setStat(stat);
 
         // Spell
-        spell.setName("Slam");
+        spell.setName("Boostshit");
+        spell.setOrdinal(2);
         // This should be generated: spell.setDescription("");
         // also because of the upgrades (+ effects)
 
@@ -249,6 +286,7 @@ public class DBUtils {
 
         // Spell
         spell.setName("BIG SMASH");
+        spell.setOrdinal(3);
         // This should be generated: spell.setDescription("");
         // also because of the upgrades (+ effects)
 
@@ -294,6 +332,7 @@ public class DBUtils {
 
         // Spell
         spell.setName("Stab");
+        spell.setOrdinal(0);
         // This should be generated: spell.setDescription("");
         // also because of the upgrades (+ effects)
 
@@ -334,6 +373,7 @@ public class DBUtils {
 
         // Spell
         spell.setName("Shit");
+        spell.setOrdinal(1);
         // This should be generated: spell.setDescription("");
         // also because of the upgrades (+ effects)
 
@@ -373,6 +413,7 @@ public class DBUtils {
 
         // Spell
         spell.setName("Kussgec");
+        spell.setOrdinal(2);
         // This should be generated: spell.setDescription("");
         // also because of the upgrades (+ effects)
 
@@ -413,6 +454,7 @@ public class DBUtils {
 
         // Spell
         spell.setName("Kick");
+        spell.setOrdinal(3);
         // This should be generated: spell.setDescription("");
         // also because of the upgrades (+ effects)
 

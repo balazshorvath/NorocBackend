@@ -1,5 +1,6 @@
 package hu.noroc.gameworld.components.behaviour;
 
+import hu.noroc.common.communication.message.EntityType;
 import hu.noroc.common.communication.message.models.PlayerCharacterResponse;
 import hu.noroc.common.communication.request.Request;
 import hu.noroc.common.communication.request.ingame.*;
@@ -10,7 +11,6 @@ import hu.noroc.common.data.model.character.CharacterStat;
 import hu.noroc.common.data.model.character.PlayerCharacter;
 import hu.noroc.common.data.model.spell.CharacterSpell;
 import hu.noroc.common.data.model.spell.SpellEffect;
-import hu.noroc.common.mongodb.NorocDB;
 import hu.noroc.gameworld.Area;
 import hu.noroc.gameworld.World;
 import hu.noroc.gameworld.components.behaviour.spell.BuffLogic;
@@ -21,7 +21,6 @@ import hu.noroc.gameworld.messaging.directional.AttackEvent;
 import hu.noroc.gameworld.messaging.directional.DirectionalEvent;
 import hu.noroc.gameworld.messaging.sync.SyncMessage;
 
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -41,6 +40,8 @@ public class Player implements Being, LivingEntity {
 
     private int nextCast;
     private CharacterSpell casting;
+    private double castingX;
+    private double castingY;
     private int nextWayPoint = -1;
     private int nextWayPointTime;
     private double[][] movement;
@@ -71,11 +72,38 @@ public class Player implements Being, LivingEntity {
                 return;
             if(tickCount < casting.getNextCast())
                 return;
+
+            if(movement != null && nextWayPoint != -1){
+                double xo = getX(), yo = getY();
+                double xd = movement[nextWayPoint - 1][0], yd = movement[nextWayPoint - 1][1];
+
+                movement = null;
+                nextWayPoint = -1;
+
+                long sumTime = Movement.calcTime(xo, yo, xd, yd, getStats().speed);
+                long time = nextWayPointTime - tickCount;
+                double percent = 1.0;
+                if(sumTime != 0)
+                    percent = (time / sumTime);
+                double dx = (xd - xo) * percent, dy = (yd - yo) * percent;
+
+                setX(xo + dx);
+                setY(yo + dy);
+            }
+            sendCurrentlyAt();
+
+            AttackEvent event = new AttackEvent(DirectionalEvent.DirectionalType.CAST);
+            event.setBeing(this);
+            event.setX(((PlayerAttackRequest) request).getX());
+            event.setY(((PlayerAttackRequest) request).getY());
+            event.setActivity(EntityActivityType.ATTACK);
+            area.newMessage(event);
+
             nextCast = tickCount + casting.getCastTime();
             casting.setCooldown(nextCast);
 
-            movement = null;
-            nextWayPoint = -1;
+            castingX = ((PlayerAttackRequest) request).getX();
+            castingY = ((PlayerAttackRequest) request).getY();
         }else if (request instanceof PlayerInteractRequest){
             PlayerInteractRequest playerInteractRequest = (PlayerInteractRequest) request;
 
@@ -83,7 +111,8 @@ public class Player implements Being, LivingEntity {
 
         }else if (request instanceof PlayerMoveRequest){
             if(casting != null)
-                return;
+                casting = null;
+
             PlayerMoveRequest playerMoveRequest = (PlayerMoveRequest) request;
 
             if(playerMoveRequest.getPath() == null || playerMoveRequest.getPath().length < 1)
@@ -98,13 +127,6 @@ public class Player implements Being, LivingEntity {
                 this.movement[i - start][0] = playerMoveRequest.getPath()[i].getX();
                 this.movement[i - start][1] = playerMoveRequest.getPath()[i].getY();
             }
-//            DirectionalEvent event = new DirectionalEvent();
-//            event.setX(movement[0][0]);
-//            event.setY(movement[0][1]);
-//            event.setBeing(this);
-//            event.setDirectionalType(DirectionalEvent.DirectionalType.MOVING_TO);
-//            nextWayPointTime = Movement.calcTime(getX(), getY(), movement[0][0], movement[0][1], stats.speed);
-//            world.newSyncMessage(new SyncMessage(session, event));
             nextWayPointTime = 0;
             nextWayPoint = 0;
         }else if (request instanceof PlayerEquipRequest){
@@ -121,38 +143,27 @@ public class Player implements Being, LivingEntity {
     @Override
     public void attacked(SpellLogic logic, Being caster) {
         logic.effect(this);
-
-        AttackEvent event = new AttackEvent();
-        event.setActivity(EntityActivityType.ATTACK);
-        event.setBeing(caster);
-        event.setX(event.getX());
-        event.setY(event.getY());
-
-        world.newSyncMessage(new SyncMessage(session, event));
+        sendDataEvent();
     }
 
     @Override
     public void tick(){
         tickCount++;
-        if(casting != null && tickCount == nextCast){
+        if(casting != null && tickCount >= nextCast){
             casting.createLogics().forEach(spellLogic -> {
-                AttackEvent event = new AttackEvent();
+                AttackEvent event = new AttackEvent(DirectionalEvent.DirectionalType.ATTACK);
 
                 event.setActivity(EntityActivityType.ATTACK);
                 event.setBeing(this);
-                event.setX(event.getX());
-                event.setY(event.getY());
+                event.setX(castingX);
+                event.setY(castingY);
                 event.setRadius(casting.getRadius());
                 event.setAlpha(casting.getAlpha());
+                event.setEffect(spellLogic);
 
                 area.newMessage(event);
+                casting = null;
             });
-            // Send back a smaller message, since it's just an acknowledgement
-            AttackEvent event = new AttackEvent();
-            event.setActivity(EntityActivityType.ATTACK);
-            event.setBeing(this);
-            world.newSyncMessage(new SyncMessage(session, event));
-            casting = null;
         }
         if(nextWayPoint != -1 && nextWayPointTime <= tickCount){
             if(nextWayPoint == 0){
@@ -208,6 +219,10 @@ public class Player implements Being, LivingEntity {
         event.setDirectionalType(DirectionalEvent.DirectionalType.MOVING_TO);
 
         area.newMessage(event);
+    }
+
+    private void sendDataEvent(){
+        world.newSyncMessage(new SyncMessage(getId(), new DataEvent(new PlayerCharacterResponse(this.character), getId())));
     }
 
     @Override

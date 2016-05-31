@@ -30,7 +30,9 @@ public class DirectionalEvent extends Event {
     public enum DirectionalType{
         CURRENTLY_AT,
         MOVING_TO,
-        ATTACK
+
+        ATTACK,
+        CAST
     }
 
     public DirectionalType getDirectionalType() {

@@ -37,7 +37,6 @@ public class GamingClient extends Client implements Runnable {
         super(socket, session, user);
     }
 
-    private boolean inGame = false;
     private World world;
 
     public void initRSA(){
@@ -103,7 +102,7 @@ public class GamingClient extends Client implements Runnable {
                 continue;
             }
 
-            if(inGame && !((request instanceof PauseRequest) || (request instanceof ReconnectRequest))){
+            if(super.inGame && !((request instanceof PauseRequest) || (request instanceof ReconnectRequest))){
                 world.newClientRequest(request);
             }else{
                 SimpleResponse response = preGame(request);
@@ -146,9 +145,9 @@ public class GamingClient extends Client implements Runnable {
                                 world -> new ListWorldsResponse.WorldData(
                                         world.getKey(),
                                         world.getValue().getName(),
-                                        world.getValue().getMaxPlayers(),
-                                        world.getValue().getPlayerCount()
-                                )
+                                        world.getValue().getPlayerCount(),
+                                        world.getValue().getMaxPlayers()
+                                        )
                         ).collect(Collectors.toList())
                 );
             case "ListCharactersRequest":
@@ -193,9 +192,9 @@ public class GamingClient extends Client implements Runnable {
                 } catch (Exception e) {
                     return new ErrorResponse(SimpleResponse.INTERNAL_ERROR, "Character not found!");
                 }
-                characterId = session;
-                worldId = ((ChooseCharacterRequest) request).getWorldId();
-                inGame = true;
+                super.characterId = session;
+                super.worldId = ((ChooseCharacterRequest) request).getWorldId();
+                super.inGame = true;
                 return new SuccessResponse();
 
             case "LogoutCharacterRequest":

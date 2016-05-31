@@ -64,7 +64,8 @@ public class Area {
                 if(message == null){
                     continue;
                 }
-                if(message instanceof AttackEvent){
+                if(message instanceof AttackEvent
+                        && ((AttackEvent)message).getDirectionalType().equals(DirectionalEvent.DirectionalType.ATTACK)){
                     applySpell((AttackEvent) message);
                 }else if(message instanceof DataEvent){
                     final Event finalMessage = message;
@@ -99,7 +100,7 @@ public class Area {
         final double xd = event.getX();
         final double yd = event.getY();
         final double r = event.getRadius();
-        final double as = event.getAlpha();
+        final double as = Math.toRadians(event.getAlpha());
         // Direction deg
         final double ad = Math.atan((yd - yp) / (xd - xp));
 

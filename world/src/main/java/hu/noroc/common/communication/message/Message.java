@@ -12,7 +12,6 @@ import org.codehaus.jackson.annotate.JsonTypeInfo;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({
-    @JsonSubTypes.Type(value = AttackMessage.class, name = "AttackMessage"),
     @JsonSubTypes.Type(value = DirectionalMessage.class, name = "DirectionalMessage"),
     @JsonSubTypes.Type(value = TargetedMessage.class, name = "TargetedMessage"),
     @JsonSubTypes.Type(value = DataMessage.class, name = "DataMessage"),

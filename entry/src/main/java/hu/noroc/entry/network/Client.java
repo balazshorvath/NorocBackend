@@ -20,6 +20,7 @@ public class Client {
 
     protected User user;
 
+    protected boolean inGame = false;
     protected String worldId;
     protected String characterId;
 
@@ -36,8 +37,8 @@ public class Client {
     }
 
     public void disconnect() {
-        if(characterId != null && !characterId.isEmpty()){
-            NorocEntry.worlds.get(worldId).logoutCharacter(user.getId(), session);
+        if(inGame){
+           //NorocEntry.worlds.get(worldId).logoutCharacter(user.getId(), session);
         }
         this.online = false;
         if(this.socket != null && !this.socket.isClosed()){

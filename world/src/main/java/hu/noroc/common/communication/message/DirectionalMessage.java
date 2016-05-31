@@ -1,10 +1,12 @@
 package hu.noroc.common.communication.message;
 
 import hu.noroc.gameworld.messaging.directional.DirectionalEvent;
+import org.codehaus.jackson.annotate.JsonSubTypes;
 
 /**
  * Created by Oryk on 4/28/2016.
  */
+@JsonSubTypes({@JsonSubTypes.Type(value = AttackMessage.class, name = "AttackMessage")})
 public class DirectionalMessage extends Message {
     protected double x, y;
     protected DirectionalEvent.DirectionalType directionalType;

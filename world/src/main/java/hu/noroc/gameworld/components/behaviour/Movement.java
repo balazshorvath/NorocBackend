@@ -12,4 +12,5 @@ public class Movement {
         double dist = Math.sqrt((xTo - xFrom)*(xTo - xFrom) + (yTo - yFrom)*(yTo - yFrom));
         return (int) (dist / (SPEED_DEFINITION_DISTANCE * speed));
     }
+
 }
