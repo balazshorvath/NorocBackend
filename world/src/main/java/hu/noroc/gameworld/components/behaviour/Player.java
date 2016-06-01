@@ -1,6 +1,5 @@
 package hu.noroc.gameworld.components.behaviour;
 
-import hu.noroc.common.communication.message.EntityType;
 import hu.noroc.common.communication.message.models.PlayerCharacterResponse;
 import hu.noroc.common.communication.request.Request;
 import hu.noroc.common.communication.request.ingame.*;
@@ -33,6 +32,7 @@ public class Player implements Being, LivingEntity {
     private CharacterClass characterClass;
     private CharacterStat stats;
     private Set<BuffLogic> effects = new HashSet<>();
+    private boolean dead = true;
 
     private Area area;
     private World world;
@@ -48,10 +48,9 @@ public class Player implements Being, LivingEntity {
 
     private int tickCount = 0;
 
-
     public void update(){
         //TODO: update stats, spells based on items, buffs, debuffs, talents (if there will be such thing)
-        this.stats = characterClass.getStat();
+        //this.stats = characterClass.getStat();
     }
 
     @Override
@@ -61,6 +60,21 @@ public class Player implements Being, LivingEntity {
 
     public void clientRequest(Request request){
         //TODO: validate, transform into Event, put into areaMessenger, act as expected
+        if(dead && request instanceof InitRequest){
+            this.stats = new CharacterStat(characterClass.getStat());
+            InitRequest initRequest = (InitRequest) request;
+            InitResponse response = new InitResponse();
+            response.setSelf(new InitResponse.InGamePlayer(this));
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException ignored) {
+            }
+            world.newSyncMessage(new SyncMessage(session, response));
+            this.dead = false;
+            return;
+        }
+        if(stats.health <= 0 && ! (request instanceof RespawnRequest))
+            return;
         if(effects.stream().anyMatch(spellEffect -> spellEffect.getType() == SpellEffect.SpellType.STUN))
             return;
         if (request instanceof PlayerAttackRequest){
@@ -70,7 +84,7 @@ public class Player implements Being, LivingEntity {
                 return;
             if(tickCount < nextCast)
                 return;
-            if(tickCount < casting.getNextCast())
+            if(tickCount < casting.nextCast())
                 return;
 
             if(movement != null && nextWayPoint != -1){
@@ -96,11 +110,12 @@ public class Player implements Being, LivingEntity {
             event.setBeing(this);
             event.setX(((PlayerAttackRequest) request).getX());
             event.setY(((PlayerAttackRequest) request).getY());
+            event.setEffect(casting.getEffect().createLogic(getId(), casting.getId(), casting.getName()));
             event.setActivity(EntityActivityType.ATTACK);
             area.newMessage(event);
 
             nextCast = tickCount + casting.getCastTime();
-            casting.setCooldown(nextCast);
+            casting.newCooldown(nextCast);
 
             castingX = ((PlayerAttackRequest) request).getX();
             castingY = ((PlayerAttackRequest) request).getY();
@@ -132,17 +147,30 @@ public class Player implements Being, LivingEntity {
         }else if (request instanceof PlayerEquipRequest){
             PlayerEquipRequest playerEquipRequest = (PlayerEquipRequest) request;
 
-        }else if(request instanceof InitRequest){
-            InitRequest initRequest = (InitRequest) request;
+        }else if(request instanceof RespawnRequest){
+            if(!dead)
+                return;
+            this.character.setX(256.0);
+            this.character.setY(170.0);
+
+            this.stats = new CharacterStat(characterClass.getStat());
             InitResponse response = new InitResponse();
             response.setSelf(new InitResponse.InGamePlayer(this));
             world.newSyncMessage(new SyncMessage(session, response));
+            sendDataEvent();
+            this.dead = false;
         }
     }
 
     @Override
     public void attacked(SpellLogic logic, Being caster) {
+        if(this.stats.health <= 0)
+            return;
         logic.effect(this);
+        if(this.stats.health <= 0) {
+            this.dead = true;
+            this.stats.health = 0;
+        }
         sendDataEvent();
     }
 
@@ -222,7 +250,12 @@ public class Player implements Being, LivingEntity {
     }
 
     private void sendDataEvent(){
-        world.newSyncMessage(new SyncMessage(getId(), new DataEvent(new PlayerCharacterResponse(this.character), getId())));
+        area.newMessage(new DataEvent(new PlayerCharacterResponse(
+                this.character,
+                this.getCharacterClass().getStat().health,
+                this.getCharacterClass().getStat().mana,
+                this.stats
+        ), getId()));
     }
 
     @Override

@@ -103,7 +103,10 @@ public class GamingClient extends Client implements Runnable {
             }
 
             if(super.inGame && !((request instanceof PauseRequest) || (request instanceof ReconnectRequest))){
-                world.newClientRequest(request);
+                try {
+                    world.newClientRequest(request);
+                }catch (Exception ignored){
+                }
             }else{
                 SimpleResponse response = preGame(request);
                 response = response == null ? new ErrorResponse(SimpleResponse.INVALID_REQUEST) : response;

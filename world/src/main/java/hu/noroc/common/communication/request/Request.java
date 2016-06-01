@@ -29,6 +29,7 @@ import org.codehaus.jackson.annotate.JsonTypeInfo;
         @JsonSubTypes.Type(value = PlayerAttackRequest.class, name = "PlayerAttackRequest"),
         @JsonSubTypes.Type(value = PlayerInteractRequest.class, name = "PlayerInteractRequest"),
         @JsonSubTypes.Type(value = PlayerMoveRequest.class, name = "PlayerMoveRequest"),
+        @JsonSubTypes.Type(value = RespawnRequest.class, name = "RespawnRequest"),
         @JsonSubTypes.Type(value = PlayerEquipRequest.class, name = "PlayerEquipRequest")
 })
 public class Request {

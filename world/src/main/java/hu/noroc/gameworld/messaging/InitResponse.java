@@ -43,7 +43,10 @@ public class InitResponse extends Event {
         private Set<BuffLogic> effects = new HashSet<>();
 
         public InGamePlayer(Player player) {
-            this.character = new PlayerCharacterResponse(player.getCharacter());
+            this.character = new PlayerCharacterResponse(
+                    player.getCharacter(), player.getCharacterClass().getStat().health, player.getCharacterClass().getStat().mana,
+                    player.getStats()
+            );
             this.effects = player.getEffects();
         }
 

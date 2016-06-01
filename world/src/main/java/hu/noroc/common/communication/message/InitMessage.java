@@ -8,10 +8,6 @@ import hu.noroc.gameworld.messaging.InitResponse;
 public class InitMessage extends Message {
     private InitResponse.InGamePlayer self;
 
-    public InitMessage() {
-        this.type = InitMessage.class.getSimpleName();
-    }
-
     public InitResponse.InGamePlayer getSelf() {
         return self;
     }

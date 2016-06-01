@@ -10,10 +10,6 @@ package hu.noroc.common.communication.message;
 public class AttackMessage extends DirectionalMessage {
     private String spellId;
 
-    public AttackMessage() {
-        this.type = AttackMessage.class.getSimpleName();
-    }
-
     public String getSpellId() {
         return spellId;
     }

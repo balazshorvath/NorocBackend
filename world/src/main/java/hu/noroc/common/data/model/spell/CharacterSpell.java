@@ -34,12 +34,12 @@ public class CharacterSpell extends Spell {
     }
 
     @JsonIgnore
-    public void setCooldown(int now){
+    public void newCooldown(int now){
         this.nextCast = now + this.cooldown;
     }
 
     @JsonIgnore
-    public long getNextCast() {
+    public long nextCast() {
         return nextCast;
     }
 

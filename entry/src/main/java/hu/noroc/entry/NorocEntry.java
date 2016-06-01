@@ -115,7 +115,6 @@ public class NorocEntry {
                     stream.flush();
 //                    LOGGER.info("Sent message to " + msg.getSession() + ": " + shit);
                 } catch(Exception ignored) {
-                    if(! (ignored instanceof NullPointerException)) ignored.printStackTrace();
                 }
             }
             LOGGER.info("World listener(" + world.getName() + ") is down.");

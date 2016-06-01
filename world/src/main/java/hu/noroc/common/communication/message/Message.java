@@ -19,17 +19,8 @@ import org.codehaus.jackson.annotate.JsonTypeInfo;
     @JsonSubTypes.Type(value = InitMessage.class, name = "InitMessage")
 })
 public class Message {
-    protected String type;
     protected EntityType entityType;
     protected String entityId;
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
 
     public String getEntityId() {
         return entityId;

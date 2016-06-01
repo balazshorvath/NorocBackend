@@ -141,7 +141,7 @@ public class DBUtils {
         db.getCharacterClassRepo().insert(characterClass);
     }
 
-    private static List<Spell> initWarriorSpell() throws IOException {
+    private static List<Spell> initWariorSpell() throws IOException {
         List<Spell> spells = new ArrayList<>();
         // QQQQQQQ
         Spell spell = new Spell();
@@ -179,7 +179,7 @@ public class DBUtils {
         spell.setAlpha(30.0);
         spell.setRadius(2.0);
 
-        spell.setCooldown(1000);
+        spell.setCooldown(100);
         spell.setCastTime(10);
         spell.setCost(cost);
 
@@ -220,7 +220,7 @@ public class DBUtils {
         spell.setAlpha(20.0);
         spell.setRadius(5.0);
 
-        spell.setCooldown(1000);
+        spell.setCooldown(100);
         spell.setCastTime(10);
         spell.setCost(cost);
 
@@ -260,7 +260,7 @@ public class DBUtils {
         spell.setAlpha(180.0);
         spell.setRadius(1.0);
 
-        spell.setCooldown(1000);
+        spell.setCooldown(100);
         spell.setCastTime(10);
         spell.setCost(cost);
 
@@ -302,7 +302,7 @@ public class DBUtils {
         spell.setAlpha(30.0);
         spell.setRadius(10.0);
 
-        spell.setCooldown(500);
+        spell.setCooldown(50);
         spell.setCastTime(10);
         spell.setCost(cost);
 
@@ -347,7 +347,7 @@ public class DBUtils {
         spell.setAlpha(10.0);
         spell.setRadius(2.0);
 
-        spell.setCooldown(1000);
+        spell.setCooldown(100);
         spell.setCastTime(10);
         spell.setCost(cost);
 
@@ -388,7 +388,7 @@ public class DBUtils {
         spell.setAlpha(20.0);
         spell.setRadius(5.0);
 
-        spell.setCooldown(1000);
+        spell.setCooldown(100);
         spell.setCastTime(10);
         spell.setCost(cost);
 
@@ -428,7 +428,7 @@ public class DBUtils {
         spell.setAlpha(180.0);
         spell.setRadius(1.0);
 
-        spell.setCooldown(1000);
+        spell.setCooldown(100);
         spell.setCastTime(10);
         spell.setCost(cost);
 
@@ -469,7 +469,343 @@ public class DBUtils {
         spell.setAlpha(10.0);
         spell.setRadius(10.0);
 
-        spell.setCooldown(500);
+        spell.setCooldown(50);
+        spell.setCastTime(10);
+        spell.setCost(cost);
+
+        id = db.getSpellRepo().insert(spell);
+        spells.add(db.getSpellRepo().findById(id));
+        return spells;
+    }
+    private static List<Spell> initWarriorSpell() throws IOException {
+        List<Spell> spells = new ArrayList<>();
+        // QQQQQQQ
+        Spell spell = new Spell();
+        SpellEffect effect = new SpellEffect();
+        CharacterStat stat = new CharacterStat();
+        SpellCost cost = new SpellCost();
+
+        // Spell cost
+        cost.setAmount(30);
+        cost.setType(SpellCost.CostType.HEALTH);
+
+        // Spell stat
+        stat.health = 30;
+
+        // Spell effect
+        effect.setDamageType(SpellEffect.DamageType.PHYSICAL);
+        effect.setType(SpellEffect.SpellType.DAMAGE);
+        effect.setStat(stat);
+
+        // Spell
+        spell.setName("Slam");
+        spell.setOrdinal(0);
+        // This should be generated: spell.setDescription("");
+        // also because of the upgrades (+ effects)
+
+        spell.setEffect(effect);
+        spell.setAcceptedUpgrades(
+                new ArrayListBuilder<SpellEffect.SpellType>(2)
+                        .add(SpellEffect.SpellType.BUFF)
+                        .add(SpellEffect.SpellType.DOT)
+                        .get()
+        );
+        spell.setMaxUpgrades(20);
+
+        spell.setAlpha(30.0);
+        spell.setRadius(2.0);
+
+        spell.setCooldown(100);
+        spell.setCastTime(10);
+        spell.setCost(cost);
+
+        String id = db.getSpellRepo().insert(spell);
+        spells.add(db.getSpellRepo().findById(id));
+        // WWWWWW
+        spell = new Spell();
+        effect = new SpellEffect();
+        stat = new CharacterStat();
+        cost = new SpellCost();
+
+        // Spell cost
+        cost.setAmount(0);
+        cost.setType(SpellCost.CostType.HEALTH);
+
+        // Spell stat
+        stat.health = 50;
+
+        // Spell effect
+        effect.setDamageType(SpellEffect.DamageType.PHYSICAL);
+        effect.setType(SpellEffect.SpellType.DAMAGE);
+        effect.setStat(stat);
+
+        // Spell
+        spell.setName("Mega Slam");
+        spell.setOrdinal(1);
+        // This should be generated: spell.setDescription("");
+        // also because of the upgrades (+ effects)
+
+        spell.setEffect(effect);
+        spell.setAcceptedUpgrades(
+                new ArrayListBuilder<SpellEffect.SpellType>()
+                        .add(SpellEffect.SpellType.DOT)
+                        .get()
+        );
+        spell.setMaxUpgrades(20);
+
+        spell.setAlpha(20.0);
+        spell.setRadius(5.0);
+
+        spell.setCooldown(100);
+        spell.setCastTime(10);
+        spell.setCost(cost);
+
+        id = db.getSpellRepo().insert(spell);
+        spells.add(db.getSpellRepo().findById(id));
+        // EEEEEE
+        spell = new Spell();
+        effect = new SpellEffect();
+        stat = new CharacterStat();
+        cost = new SpellCost();
+
+        // Spell cost
+        cost.setAmount(0);
+        cost.setType(SpellCost.CostType.HEALTH);
+
+        // Spell stat
+        stat.strength = 5;
+
+        // Spell effect
+        effect.setType(SpellEffect.SpellType.BUFF);
+        effect.setStat(stat);
+
+        // Spell
+        spell.setName("Boostshit");
+        spell.setOrdinal(2);
+        // This should be generated: spell.setDescription("");
+        // also because of the upgrades (+ effects)
+
+        spell.setEffect(effect);
+        spell.setAcceptedUpgrades(
+                new ArrayListBuilder<SpellEffect.SpellType>()
+                        .add(SpellEffect.SpellType.DOT)
+                        .get()
+        );
+        spell.setMaxUpgrades(20);
+
+        spell.setAlpha(180.0);
+        spell.setRadius(1.0);
+
+        spell.setCooldown(100);
+        spell.setCastTime(10);
+        spell.setCost(cost);
+
+        id = db.getSpellRepo().insert(spell);
+        spells.add(db.getSpellRepo().findById(id));
+
+        spell = new Spell();
+        effect = new SpellEffect();
+        stat = new CharacterStat();
+        cost = new SpellCost();
+
+        // Spell cost
+        cost.setAmount(100);
+        cost.setType(SpellCost.CostType.HEALTH);
+
+        // Spell stat
+        stat.health = 100;
+
+        // Spell effect
+        effect.setDamageType(SpellEffect.DamageType.PHYSICAL);
+        effect.setType(SpellEffect.SpellType.DAMAGE);
+        effect.setStat(stat);
+
+        // Spell
+        spell.setName("BIG SMASH");
+        spell.setOrdinal(3);
+        // This should be generated: spell.setDescription("");
+        // also because of the upgrades (+ effects)
+
+        spell.setEffect(effect);
+        spell.setAcceptedUpgrades(
+                new ArrayListBuilder<SpellEffect.SpellType>(2)
+                        .add(SpellEffect.SpellType.BUFF)
+                        .add(SpellEffect.SpellType.DOT)
+                        .get()
+        );
+        spell.setMaxUpgrades(20);
+
+        spell.setAlpha(30.0);
+        spell.setRadius(10.0);
+
+        spell.setCooldown(50);
+        spell.setCastTime(10);
+        spell.setCost(cost);
+
+        id = db.getSpellRepo().insert(spell);
+        spells.add(db.getSpellRepo().findById(id));
+        return spells;
+    }
+    private static List<Spell> iniRogueSpell() throws IOException {
+        List<Spell> spells = new ArrayList<>();
+        // QQQQQQQ
+        Spell spell = new Spell();
+        SpellEffect effect = new SpellEffect();
+        CharacterStat stat = new CharacterStat();
+        SpellCost cost = new SpellCost();
+
+        // Spell cost
+        cost.setAmount(10);
+        cost.setType(SpellCost.CostType.MANA);
+
+        // Spell stat
+        stat.health = 70;
+
+        // Spell effect
+        effect.setDamageType(SpellEffect.DamageType.PHYSICAL);
+        effect.setType(SpellEffect.SpellType.DAMAGE);
+        effect.setStat(stat);
+
+        // Spell
+        spell.setName("Stab");
+        spell.setOrdinal(0);
+        // This should be generated: spell.setDescription("");
+        // also because of the upgrades (+ effects)
+
+        spell.setEffect(effect);
+        spell.setAcceptedUpgrades(
+                new ArrayListBuilder<SpellEffect.SpellType>(1)
+                        .add(SpellEffect.SpellType.DOT)
+                        .get()
+        );
+        spell.setMaxUpgrades(20);
+
+        spell.setAlpha(10.0);
+        spell.setRadius(2.0);
+
+        spell.setCooldown(100);
+        spell.setCastTime(10);
+        spell.setCost(cost);
+
+        String id = db.getSpellRepo().insert(spell);
+        spells.add(db.getSpellRepo().findById(id));
+        // WWWWWW
+        spell = new Spell();
+        effect = new SpellEffect();
+        stat = new CharacterStat();
+        cost = new SpellCost();
+
+        // Spell cost
+        cost.setAmount(20);
+        cost.setType(SpellCost.CostType.HEALTH);
+
+        // Spell stat
+        stat.health = 50;
+
+        // Spell effect
+        effect.setDamageType(SpellEffect.DamageType.PHYSICAL);
+        effect.setType(SpellEffect.SpellType.DAMAGE);
+        effect.setStat(stat);
+
+        // Spell
+        spell.setName("Shit");
+        spell.setOrdinal(1);
+        // This should be generated: spell.setDescription("");
+        // also because of the upgrades (+ effects)
+
+        spell.setEffect(effect);
+        spell.setAcceptedUpgrades(
+                new ArrayListBuilder<SpellEffect.SpellType>()
+                        .add(SpellEffect.SpellType.DOT)
+                        .get()
+        );
+        spell.setMaxUpgrades(20);
+
+        spell.setAlpha(20.0);
+        spell.setRadius(5.0);
+
+        spell.setCooldown(100);
+        spell.setCastTime(10);
+        spell.setCost(cost);
+
+        id = db.getSpellRepo().insert(spell);
+        spells.add(db.getSpellRepo().findById(id));
+        // EEEEEE
+        spell = new Spell();
+        effect = new SpellEffect();
+        stat = new CharacterStat();
+        cost = new SpellCost();
+
+        // Spell cost
+        cost.setAmount(0);
+        cost.setType(SpellCost.CostType.HEALTH);
+
+        // Spell stat
+        stat.strength = 5;
+
+        // Spell effect
+        effect.setType(SpellEffect.SpellType.BUFF);
+        effect.setStat(stat);
+
+        // Spell
+        spell.setName("Kussgec");
+        spell.setOrdinal(2);
+        // This should be generated: spell.setDescription("");
+        // also because of the upgrades (+ effects)
+
+        spell.setEffect(effect);
+        spell.setAcceptedUpgrades(
+                new ArrayListBuilder<SpellEffect.SpellType>()
+                        .add(SpellEffect.SpellType.DOT)
+                        .get()
+        );
+        spell.setMaxUpgrades(20);
+
+        spell.setAlpha(180.0);
+        spell.setRadius(1.0);
+
+        spell.setCooldown(100);
+        spell.setCastTime(10);
+        spell.setCost(cost);
+
+        id = db.getSpellRepo().insert(spell);
+        spells.add(db.getSpellRepo().findById(id));
+
+        spell = new Spell();
+        effect = new SpellEffect();
+        stat = new CharacterStat();
+        cost = new SpellCost();
+
+        // Spell cost
+        cost.setAmount(100);
+        cost.setType(SpellCost.CostType.HEALTH);
+
+        // Spell stat
+        stat.health = 100;
+
+        // Spell effect
+        effect.setDamageType(SpellEffect.DamageType.PHYSICAL);
+        effect.setType(SpellEffect.SpellType.DAMAGE);
+        effect.setStat(stat);
+
+        // Spell
+        spell.setName("Kick");
+        spell.setOrdinal(3);
+        // This should be generated: spell.setDescription("");
+        // also because of the upgrades (+ effects)
+
+        spell.setEffect(effect);
+        spell.setAcceptedUpgrades(
+                new ArrayListBuilder<SpellEffect.SpellType>(2)
+                        .add(SpellEffect.SpellType.DOT)
+                        .get()
+        );
+        spell.setMaxUpgrades(20);
+
+        spell.setAlpha(10.0);
+        spell.setRadius(10.0);
+
+        spell.setCooldown(50);
         spell.setCastTime(10);
         spell.setCost(cost);
 

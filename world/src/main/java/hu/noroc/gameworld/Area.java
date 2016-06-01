@@ -102,12 +102,21 @@ public class Area {
         final double r = event.getRadius();
         final double as = Math.toRadians(event.getAlpha());
         // Direction deg
-        final double ad = Math.atan((yd - yp) / (xd - xp));
+        final double xdp = (xd - xp);
+        final double ydp = (yd - yp);
+        double ad = Math.atan(ydp / xdp);
+
+        if(xdp < 0) {
+            ad += Math.PI;
+        }else if(ydp < 0){
+            ad += Math.PI * 2;
+        }
 
         //TODO: Consider parallel execution (search->applySpell), while the entity calcs the damage
         // npcs.parallelStream();
 
         //TODO: Friendly/Unfriendly stuff
+        final double finalAd = ad;
         npcs.forEach(scriptedNPC -> {
             // Target - Entity
             double xpt = scriptedNPC.getEntity().getX() - xp;
@@ -123,13 +132,14 @@ public class Area {
 
             double apt = Math.acos(xpt / absVecpt);
 
-            if ((apt <= (ad + as)) && ((ad - as) <= apt))
+            if ((apt <= (finalAd + as)) && ((finalAd - as) <= apt))
                 scriptedNPC.getEntity().attacked(event.getEffect(), event.getBeing());
         });
         players.forEach(player -> {
             // Target - Entity
             double xpt = player.getX() - xp;
             double ypt = player.getY() - yp;
+
             double absVecpt = Math.sqrt((xpt * xpt + ypt * ypt));
 
             if (absVecpt > r)
@@ -138,17 +148,29 @@ public class Area {
                 player.attacked(event.getEffect(), event.getBeing());
                 return;
             }
-            double apt = Math.acos(xpt / absVecpt);
+            double apt = Math.atan(ypt / xpt);
+            if(xpt < 0) {
+                apt += Math.PI;
+            }else if(ypt < 0){
+                apt += Math.PI * 2;
+            }
 
-            if ((apt <= (ad + as)) && ((ad - as) <= apt))
+            if ((apt <= (finalAd + as)) && ((finalAd - as) <= apt))
                 player.attacked(event.getEffect(), event.getBeing());
         });
 
     }
 
     public void newPlayer(Player player){
-        this.players.forEach(player1 -> player.newEvent(new DataEvent(new PlayerCharacterResponse(player1.getCharacter()), player1.getId())));
-        this.newMessage(new DataEvent(new PlayerCharacterResponse(player.getCharacter()), player.getId()));
+        this.players.forEach(player1 -> player.newEvent(new DataEvent(new PlayerCharacterResponse(
+                player1.getCharacter(), player1.getCharacterClass().getStat().health, player1.getCharacterClass().getStat().mana,
+                player1.getStats()
+        ), player1.getId())));
+        this.newMessage(new DataEvent(new PlayerCharacterResponse(
+                player.getCharacter(), player.getCharacterClass().getStat().health,
+                player.getCharacterClass().getStat().mana,
+                player.getStats()
+        ), player.getId()));
         this.players.add(player);
     }
 
