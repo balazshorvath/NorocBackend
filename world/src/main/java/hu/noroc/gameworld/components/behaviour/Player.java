@@ -158,6 +158,7 @@ public class Player implements Being, LivingEntity {
             response.setSelf(new InitResponse.InGamePlayer(this));
             world.newSyncMessage(new SyncMessage(session, response));
             sendDataEvent();
+            sendCurrentlyAt();
             this.dead = false;
         }
     }
