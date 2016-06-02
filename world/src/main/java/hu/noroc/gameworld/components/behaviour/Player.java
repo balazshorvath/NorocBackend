@@ -50,7 +50,7 @@ public class Player implements Being, LivingEntity {
 
     public void update(){
         //TODO: update stats, spells based on items, buffs, debuffs, talents (if there will be such thing)
-        //this.stats = characterClass.getStat();
+        this.stats = new CharacterStat(characterClass.getStat());
     }
 
     @Override
@@ -61,6 +61,7 @@ public class Player implements Being, LivingEntity {
     public void clientRequest(Request request){
         //TODO: validate, transform into Event, put into areaMessenger, act as expected
         if(dead && request instanceof InitRequest){
+            update();
             this.stats = new CharacterStat(characterClass.getStat());
             InitRequest initRequest = (InitRequest) request;
             InitResponse response = new InitResponse();
@@ -153,7 +154,7 @@ public class Player implements Being, LivingEntity {
             this.character.setX(256.0);
             this.character.setY(170.0);
 
-            this.stats = new CharacterStat(characterClass.getStat());
+            update();
             InitResponse response = new InitResponse();
             response.setSelf(new InitResponse.InGamePlayer(this));
             world.newSyncMessage(new SyncMessage(session, response));

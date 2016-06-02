@@ -100,7 +100,7 @@ public class NorocEntry {
         return new Thread(() -> {
             SyncMessage msg;
             ObjectMapper mapper = new ObjectMapper();
-            Client client;
+            Client client = null;
             OutputStream stream;
             while(running){
                 try {
@@ -115,6 +115,10 @@ public class NorocEntry {
                     stream.flush();
 //                    LOGGER.info("Sent message to " + msg.getSession() + ": " + shit);
                 } catch(Exception ignored) {
+                    if(!(ignored instanceof NullPointerException)
+                        && client != null){
+                        world.logoutCharacter(client.getUser().getId(), client.getSession());
+                    }
                 }
             }
             LOGGER.info("World listener(" + world.getName() + ") is down.");
