@@ -1,5 +1,6 @@
 package hu.noroc.test;
 
+import hu.noroc.common.communication.message.models.PlayerCharacterResponse;
 import hu.noroc.common.communication.response.ListCharacterResponse;
 import hu.noroc.common.communication.response.ListWorldsResponse;
 import hu.noroc.common.communication.response.LoginResponse;
@@ -93,7 +94,7 @@ public class PreGameTest {
         assertEquals(response.getCode(), SimpleResponse.SUCCESS);
         assertEquals(((ListCharacterResponse) response).getCharacters().size(), 1);
 
-        character = ((ListCharacterResponse)response).getCharacters().get(0);
+        PlayerCharacterResponse character1 = ((ListCharacterResponse)response).getCharacters().get(0);
 
         measure.start("world listing");
         response = client.listWorlds();
@@ -104,7 +105,7 @@ public class PreGameTest {
         world = ((ListWorldsResponse)response).getWorlds().get(0);
 
         measure.start("character and world choosing");
-        response = client.chooseCharacter(character.getId(),world.getId());
+        response = client.chooseCharacter(character1.getId(),world.getId());
         measure.stopAndLog();
         assertEquals(response.getCode(), SimpleResponse.SUCCESS);
     }

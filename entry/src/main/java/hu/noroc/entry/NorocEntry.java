@@ -18,6 +18,7 @@ import hu.noroc.common.mongodb.NorocDB;
 import hu.noroc.entry.config.EntryConfig;
 import hu.noroc.entry.network.Client;
 import hu.noroc.entry.network.GamingClient;
+import hu.noroc.entry.security.Compressor;
 import hu.noroc.entry.security.SecurityUtils;
 import hu.noroc.gameworld.World;
 import hu.noroc.gameworld.config.WorldConfig;
@@ -111,12 +112,15 @@ public class NorocEntry {
                     String shit = mapper.writeValueAsString(
                             msg.getEvent().createMessage()
                     );
-                    stream.write((shit + '\n').getBytes());
+                    stream.write((Compressor.gzip(shit) + '\n').getBytes());
                     stream.flush();
 //                    LOGGER.info("Sent message to " + msg.getSession() + ": " + shit);
                 } catch(Exception ignored) {
                     if(!(ignored instanceof NullPointerException)
-                        && client != null){
+                        && client != null && !client.getState().equals(Client.ClientState.CONNECTING)){
+                        //TODO: do it only, when IOException
+                        LOGGER.info("Client disconnected");
+                        ignored.printStackTrace();
                         world.logoutCharacter(client.getUser().getId(), client.getSession());
                     }
                 }
@@ -198,12 +202,14 @@ public class NorocEntry {
             }
             if(message != null){
                 try {
-                    Request request = new ObjectMapper().readValue(message, Request.class);
+                    Request request = new ObjectMapper().readValue(Compressor.gunzip(message), Request.class);
                     if(request instanceof ReconnectRequest){
                         GamingClient client = (GamingClient) clients.get(request.getSession());
                         if(client == null){
                             socket.getOutputStream().write(
-                                    new ObjectMapper().writeValueAsBytes(new ErrorResponse(SimpleResponse.INTERNAL_ERROR))
+                                    Compressor.gzip(
+                                            (new ObjectMapper().writeValueAsString(new ErrorResponse(SimpleResponse.INTERNAL_ERROR)))
+                                            + '\n').getBytes()
                             );
                             socket.getOutputStream().flush();
                             socket.close();

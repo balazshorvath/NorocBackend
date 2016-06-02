@@ -4,6 +4,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Arrays;
+import java.util.Base64;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -16,12 +18,15 @@ public class Compressor {
         ByteArrayOutputStream result;
         GZIPOutputStream gzip = null;
         try {
-            result = new ByteArrayOutputStream();
+            result = new ByteArrayOutputStream(data.length());
             gzip = new GZIPOutputStream(result);
 
             gzip.write(data.getBytes());
 
-            return result.toString();
+            gzip.finish();
+            gzip.close();
+
+            return new String(Base64.getEncoder().encode(result.toByteArray()));
         } catch (IOException e) {
             //TODO: log
             return null;
@@ -36,11 +41,11 @@ public class Compressor {
     public static String gunzip(String data){
         GZIPInputStream gzip = null;
         try {
-            ByteArrayInputStream inputStream = new ByteArrayInputStream(data.getBytes());
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(Base64.getDecoder().decode(data));
             gzip = new GZIPInputStream(inputStream);
             InputStreamReader reader = new InputStreamReader(gzip);
 
-            char[] buffer = new char[256];
+            char[] buffer = new char[512];
             String result = "";
             while(reader.read(buffer) > 0){
                 result += new String(buffer);

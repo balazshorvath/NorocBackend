@@ -16,6 +16,7 @@ import hu.noroc.common.communication.response.standard.SuccessResponse;
 import hu.noroc.common.data.model.user.User;
 import hu.noroc.common.mongodb.NorocDB;
 import hu.noroc.entry.NorocEntry;
+import hu.noroc.entry.security.Compressor;
 import hu.noroc.entry.security.SecurityUtils;
 import hu.noroc.gameworld.World;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -66,7 +67,7 @@ public class GamingClient extends Client implements Runnable {
         state = ClientState.CONNECTED;
         try {
             writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-            writer.write(mapper.writeValueAsString(new SuccessResponse()) + '\n');
+            writer.write(Compressor.gzip(mapper.writeValueAsString(new SuccessResponse())) + '\n');
             writer.flush();
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         } catch (IOException e) {
@@ -96,7 +97,7 @@ public class GamingClient extends Client implements Runnable {
 //            message = NetworkData.rsaDecryptData(message, this.key.getPrivate());
             LOGGER.info("Recvd message: " + message);
             try {
-                request = mapper.readValue(message, Request.class);
+                request = mapper.readValue(Compressor.gunzip(message), Request.class);
             } catch (Exception e) {
                 LOGGER.info("Invalid message.");
                 continue;
@@ -114,7 +115,7 @@ public class GamingClient extends Client implements Runnable {
                 if(response.getCode() == 0)
                     break;
                 try {
-                    writer.write(mapper.writeValueAsString(response) + '\n');
+                    writer.write(Compressor.gzip(mapper.writeValueAsString(response)) + '\n');
 //                    writer.write(NetworkData.rsaData(
 //                            mapper.writeValueAsString(response),
 //                            clientPublic
@@ -211,7 +212,10 @@ public class GamingClient extends Client implements Runnable {
             case "PauseRequest":
                 if(!session.equals(request.getSession()))
                     return new ErrorResponse(SimpleResponse.NOT_AUTHENTICATED_ERROR, "Bad session.");
-                state = ClientState.PAUSED;
+                if(inGame)
+                    state = ClientState.CONNECTING;
+                else
+                    state = ClientState.PAUSED;
                 disconnect();
                 return new SuccessResponse(0);
         }

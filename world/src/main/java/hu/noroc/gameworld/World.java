@@ -101,9 +101,10 @@ public class World {
     public void logoutCharacter(String userId, String session){
         Player player = players.get(session);
         if(player != null && player.currentArea() != null){
+            String id = player.getId();
             this.players.remove(player.getId());
-            player.currentArea().newMessage(new DataEvent(null, player.getId()));
             player.currentArea().getPlayers().remove(player);
+            player.currentArea().newMessage(new DataEvent(null, id));
             playerTicker.unsubscribe(player);
         }
     }

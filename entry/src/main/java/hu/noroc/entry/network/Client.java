@@ -37,9 +37,6 @@ public class Client {
     }
 
     public void disconnect() {
-        if(inGame){
-           //NorocEntry.worlds.get(worldId).logoutCharacter(user.getId(), session);
-        }
         this.online = false;
         if(this.socket != null && !this.socket.isClosed()){
             try {
@@ -48,8 +45,10 @@ public class Client {
             }
         }
 
-        characterId = null;
-        worldId = null;
+        if(! state.equals(ClientState.CONNECTING)) {
+            characterId = null;
+            worldId = null;
+        }
     }
 
     public void forceDisconnect() {
@@ -64,6 +63,7 @@ public class Client {
         DISCONNECTED,
         TIMED_OUT,
         CONNECTED,
+        CONNECTING,
         UNKNOWN
     }
 
@@ -146,5 +146,9 @@ public class Client {
 
     public void setClientPublic(PublicKey clientPublic) {
         this.clientPublic = clientPublic;
+    }
+
+    public void setState(ClientState state) {
+        this.state = state;
     }
 }
