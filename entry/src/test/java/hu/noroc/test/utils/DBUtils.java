@@ -66,6 +66,9 @@ public class DBUtils {
         character.setXp(0);
 
         String id = db.getCharacterRepo().insert(character);
+        character.getSpells().forEach((s, characterSpell) -> characterSpell.setOwnerId(id));
+        character.setId(id);
+        db.getCharacterRepo().save(character);
         characterCounter++;
 
         return db.getCharacterRepo().findById(id);

@@ -1,18 +1,18 @@
 package hu.noroc.common.communication.message;
 
-import hu.noroc.gameworld.messaging.InitResponse;
+import hu.noroc.gameworld.messaging.InitEvent;
 
 /**
  * Created by Oryk on 2016. 05. 28..
  */
 public class InitMessage extends Message {
-    private InitResponse.InGamePlayer self;
+    private InitEvent.InGamePlayer self;
 
-    public InitResponse.InGamePlayer getSelf() {
+    public InitEvent.InGamePlayer getSelf() {
         return self;
     }
 
-    public void setSelf(InitResponse.InGamePlayer self) {
+    public void setSelf(InitEvent.InGamePlayer self) {
         this.self = self;
     }
 }

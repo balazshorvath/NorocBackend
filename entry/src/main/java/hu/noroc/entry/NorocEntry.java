@@ -239,7 +239,7 @@ public class NorocEntry {
                 return;
             }
             String session;
-            while(!clients.containsKey(session = SecurityUtils.randomString(32)));
+            while(clients.containsKey(session = SecurityUtils.randomString(32)));
 
             GamingClient client = new GamingClient(socket, session, null);
             new Thread(client).start();
@@ -276,7 +276,12 @@ public class NorocEntry {
         );
         character.setXp(0);
 
-        database.getCharacterRepo().insert(character);
+        final String id = database.getCharacterRepo().insert(character);
+        //TODO: should it be session?
+        character = database.getCharacterRepo().findById(id);
+        character.getSpells().forEach((s, characterSpell) -> characterSpell.setOwnerId(id));
+        character.setId(id);
+        database.getCharacterRepo().save(character);
 
         return new ListCharacterResponse(
                 database.getCharacterRepo().findByUser(user.getId())

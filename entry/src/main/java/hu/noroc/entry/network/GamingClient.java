@@ -107,6 +107,7 @@ public class GamingClient extends Client implements Runnable {
                 try {
                     world.newClientRequest(request);
                 }catch (Exception ignored){
+                    ignored.printStackTrace();
                 }
             }else{
                 SimpleResponse response = preGame(request);

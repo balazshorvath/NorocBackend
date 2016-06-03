@@ -3,8 +3,7 @@ package hu.noroc.gameworld.components.behaviour;
 import hu.noroc.common.communication.message.models.PlayerCharacterResponse;
 import hu.noroc.common.communication.request.Request;
 import hu.noroc.common.communication.request.ingame.*;
-import hu.noroc.gameworld.messaging.DataEvent;
-import hu.noroc.gameworld.messaging.InitResponse;
+import hu.noroc.gameworld.messaging.*;
 import hu.noroc.common.data.model.character.CharacterClass;
 import hu.noroc.common.data.model.character.CharacterStat;
 import hu.noroc.common.data.model.character.PlayerCharacter;
@@ -14,8 +13,6 @@ import hu.noroc.gameworld.Area;
 import hu.noroc.gameworld.World;
 import hu.noroc.gameworld.components.behaviour.spell.BuffLogic;
 import hu.noroc.gameworld.components.behaviour.spell.SpellLogic;
-import hu.noroc.gameworld.messaging.EntityActivityType;
-import hu.noroc.gameworld.messaging.Event;
 import hu.noroc.gameworld.messaging.directional.AttackEvent;
 import hu.noroc.gameworld.messaging.directional.DirectionalEvent;
 import hu.noroc.gameworld.messaging.sync.SyncMessage;
@@ -46,7 +43,9 @@ public class Player implements Being, ActingEntity {
     private int nextWayPointTime;
     private double[][] movement;
 
+    static final int tckCountReset = Integer.MAX_VALUE / 2 ;
     private int tickCount = 0;
+    private boolean countReset = false;
 
     public void update(){
         //TODO: update stats, spells based on items, buffs, debuffs, talents (if there will be such thing)
@@ -55,8 +54,10 @@ public class Player implements Being, ActingEntity {
 
     @Override
     public void newEvent(Event message) {
-        if(!message.getBeing().getId().equals(this.getId()))
-            world.newSyncMessage(new SyncMessage(session, message));
+        if(message.getBeing() != null && message.getBeing().getId().equals(this.getId())
+                && !((message instanceof DataEvent) || (message instanceof InitEvent) || (message instanceof AreaChangedEvent)))
+            return;
+        world.newSyncMessage(new SyncMessage(session, message));
     }
 
     public void clientRequest(Request request){
@@ -65,8 +66,8 @@ public class Player implements Being, ActingEntity {
             update();
             this.stats = new CharacterStat(characterClass.getStat());
             InitRequest initRequest = (InitRequest) request;
-            InitResponse response = new InitResponse();
-            response.setSelf(new InitResponse.InGamePlayer(this));
+            InitEvent response = new InitEvent();
+            response.setSelf(new InitEvent.InGamePlayer(this));
             try {
                 Thread.sleep(200);
             } catch (InterruptedException ignored) {
@@ -91,7 +92,7 @@ public class Player implements Being, ActingEntity {
 
             if(movement != null && nextWayPoint != -1){
                 double xo = getX(), yo = getY();
-                double xd = movement[nextWayPoint - 1][0], yd = movement[nextWayPoint - 1][1];
+                double xd = movement[nextWayPoint][0], yd = movement[nextWayPoint][1];
 
                 movement = null;
                 nextWayPoint = -1;
@@ -155,8 +156,8 @@ public class Player implements Being, ActingEntity {
             this.character.setY(170.0);
 
             update();
-            InitResponse response = new InitResponse();
-            response.setSelf(new InitResponse.InGamePlayer(this));
+            InitEvent response = new InitEvent();
+            response.setSelf(new InitEvent.InGamePlayer(this));
             world.newSyncMessage(new SyncMessage(session, response));
             sendDataEvent();
             this.dead = false;
@@ -178,6 +179,15 @@ public class Player implements Being, ActingEntity {
     @Override
     public void tick(){
         tickCount++;
+        if(tickCount % 601 == 0){
+            sendCurrentlyAt();
+        }
+        if(tickCount >= tckCountReset
+                && (casting == null)
+                && (nextWayPoint == -1)){
+            tickCount = 0;
+        }
+
         if(casting != null && tickCount >= nextCast){
             casting.createLogics().forEach(spellLogic -> {
                 AttackEvent event = new AttackEvent(DirectionalEvent.DirectionalType.ATTACK);
@@ -237,6 +247,16 @@ public class Player implements Being, ActingEntity {
         event.setDirectionalType(DirectionalEvent.DirectionalType.MOVING_TO);
 
         area.newMessage(event);
+    }
+    private void sendCurrentlyAt(){
+        DirectionalEvent event = new DirectionalEvent();
+        event.setX(getX());
+        event.setY(getY());
+        event.setBeing(this);
+        event.setDirectionalType(DirectionalEvent.DirectionalType.CURRENTLY_AT);
+
+        area.newMessage(event);
+        world.newSyncMessage(new SyncMessage(getId(), event));
     }
 
     private void sendDataEvent(){

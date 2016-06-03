@@ -9,7 +9,6 @@ import org.codehaus.jackson.annotate.JsonSubTypes;
 @JsonSubTypes({@JsonSubTypes.Type(value = AttackMessage.class, name = "AttackMessage")})
 public class DirectionalMessage extends Message {
     protected double x, y;
-    protected double xFrom, yFrom;
     protected DirectionalEvent.DirectionalType directionalType;
 
     public double getX() {
@@ -28,21 +27,6 @@ public class DirectionalMessage extends Message {
         this.y = y;
     }
 
-    public double getxFrom() {
-        return xFrom;
-    }
-
-    public void setxFrom(double xFrom) {
-        this.xFrom = xFrom;
-    }
-
-    public double getyFrom() {
-        return yFrom;
-    }
-
-    public void setyFrom(double yFrom) {
-        this.yFrom = yFrom;
-    }
 
     public DirectionalEvent.DirectionalType getDirectionalType() {
         return directionalType;

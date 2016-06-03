@@ -3,7 +3,6 @@ package hu.noroc.common.communication.response.standard;
 import hu.noroc.common.communication.response.ListCharacterResponse;
 import hu.noroc.common.communication.response.ListWorldsResponse;
 import hu.noroc.common.communication.response.LoginResponse;
-import hu.noroc.gameworld.messaging.InitResponse;
 import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 
@@ -12,7 +11,6 @@ import org.codehaus.jackson.annotate.JsonTypeInfo;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = InitResponse.class, name = "InitResponse"),
         @JsonSubTypes.Type(value = ListCharacterResponse.class, name = "ListCharacterResponse"),
         @JsonSubTypes.Type(value = ListWorldsResponse.class, name = "ListWorldsResponse"),
         @JsonSubTypes.Type(value = LoginResponse.class, name = "LoginResponse"),

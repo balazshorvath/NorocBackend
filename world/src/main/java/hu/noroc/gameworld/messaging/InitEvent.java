@@ -18,7 +18,7 @@ import java.util.Set;
 /**
  * Created by Oryk on 4/17/2016.
  */
-public class InitResponse extends Event {
+public class InitEvent extends Event {
     private InGamePlayer self;
 
 
