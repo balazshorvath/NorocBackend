@@ -20,6 +20,10 @@ public class DirectionalEvent extends Event {
         message.setDirectionalType(directionalType);
         message.setX(x);
         message.setY(y);
+        if(directionalType.equals(DirectionalType.MOVING_TO)){
+            message.setxFrom(being.getX());
+            message.setyFrom(being.getY());
+        }
         message.setEntityId(being.getId());
         message.setEntityType(entity);
 
@@ -28,7 +32,6 @@ public class DirectionalEvent extends Event {
 
 
     public enum DirectionalType{
-        CURRENTLY_AT,
         MOVING_TO,
 
         ATTACK,

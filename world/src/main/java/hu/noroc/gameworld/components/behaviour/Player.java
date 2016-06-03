@@ -26,7 +26,7 @@ import java.util.Set;
 /**
  * Created by Oryk on 4/3/2016.
  */
-public class Player implements Being, LivingEntity {
+public class Player implements Being, ActingEntity {
     private String session;
     private PlayerCharacter character;
     private CharacterClass characterClass;
@@ -55,7 +55,8 @@ public class Player implements Being, LivingEntity {
 
     @Override
     public void newEvent(Event message) {
-        world.newSyncMessage(new SyncMessage(session, message));
+        if(!message.getBeing().getId().equals(this.getId()))
+            world.newSyncMessage(new SyncMessage(session, message));
     }
 
     public void clientRequest(Request request){
@@ -105,7 +106,6 @@ public class Player implements Being, LivingEntity {
                 setX(xo + dx);
                 setY(yo + dy);
             }
-            sendCurrentlyAt();
 
             AttackEvent event = new AttackEvent(DirectionalEvent.DirectionalType.CAST);
             event.setBeing(this);
@@ -159,7 +159,6 @@ public class Player implements Being, LivingEntity {
             response.setSelf(new InitResponse.InGamePlayer(this));
             world.newSyncMessage(new SyncMessage(session, response));
             sendDataEvent();
-            sendCurrentlyAt();
             this.dead = false;
         }
     }
@@ -215,7 +214,6 @@ public class Player implements Being, LivingEntity {
                         stats.speed
                 );
 
-                sendCurrentlyAt();
                 sendMovingTo();
 
                 nextWayPoint++;
@@ -223,7 +221,6 @@ public class Player implements Being, LivingEntity {
                 this.setX(movement[nextWayPoint - 1][0]);
                 this.setY(movement[nextWayPoint - 1][1]);
 
-                sendCurrentlyAt();
                 nextWayPoint = -1;
                 movement = null;
             }
@@ -232,15 +229,6 @@ public class Player implements Being, LivingEntity {
 
     }
 
-    private void sendCurrentlyAt(){
-        DirectionalEvent event = new DirectionalEvent();
-        event.setX(getX());
-        event.setY(getY());
-        event.setBeing(this);
-        event.setDirectionalType(DirectionalEvent.DirectionalType.CURRENTLY_AT);
-
-        area.newMessage(event);
-    }
     private void sendMovingTo(){
         DirectionalEvent event = new DirectionalEvent();
         event.setX(movement[nextWayPoint][0]);

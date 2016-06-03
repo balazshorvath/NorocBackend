@@ -81,7 +81,7 @@ public class Area {
                             scriptedNPC.newEvent(finalMessage);
                     });
                     if(message instanceof DirectionalEvent && finalMessage.getEntity() == EntityType.PLAYER
-                            && ((DirectionalEvent)message).getDirectionalType() == DirectionalEvent.DirectionalType.CURRENTLY_AT
+                            && ((DirectionalEvent)message).getDirectionalType() == DirectionalEvent.DirectionalType.MOVING_TO
                             && !isInside(((DirectionalEvent)message).getX(), ((DirectionalEvent)message).getY())){
                         world.putPlayerToArea((Player) message.getBeing());
                     }

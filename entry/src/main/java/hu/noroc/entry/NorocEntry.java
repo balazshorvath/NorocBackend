@@ -238,7 +238,10 @@ public class NorocEntry {
                 LOGGER.info("Connection problem.");
                 return;
             }
-            GamingClient client = new GamingClient(socket, SecurityUtils.randomString(32), null);
+            String session;
+            while(!clients.containsKey(session = SecurityUtils.randomString(32)));
+
+            GamingClient client = new GamingClient(socket, session, null);
             new Thread(client).start();
             clients.put(client.getSession(), client);
             LOGGER.info("Client connected.");

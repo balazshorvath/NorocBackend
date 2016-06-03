@@ -547,7 +547,7 @@ public class DBUtils {
         spell.setMaxUpgrades(20);
 
         spell.setAlpha(10.0);
-        spell.setRadius(2.0);
+        spell.setRadius(12.0);
 
         spell.setCooldown(100);
         spell.setCastTime(10);

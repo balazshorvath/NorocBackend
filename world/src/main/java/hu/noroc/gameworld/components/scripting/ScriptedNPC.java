@@ -4,7 +4,7 @@ import hu.noroc.common.data.model.NPCModel;
 import hu.noroc.common.data.model.character.CharacterStat;
 import hu.noroc.gameworld.Area;
 import hu.noroc.gameworld.components.behaviour.Being;
-import hu.noroc.gameworld.components.behaviour.LivingEntity;
+import hu.noroc.gameworld.components.behaviour.ActingEntity;
 import hu.noroc.gameworld.components.behaviour.NPC;
 import hu.noroc.gameworld.components.behaviour.spell.BuffLogic;
 import hu.noroc.gameworld.components.behaviour.spell.SpellLogic;
@@ -23,7 +23,7 @@ import java.util.Set;
 /**
  * Created by Oryk on 3/20/2016.
  */
-public class ScriptedNPC extends Scripted<NPC> implements Being, LivingEntity {
+public class ScriptedNPC extends Scripted<NPC> implements Being, ActingEntity {
     NPCModel model;
     NPCScriptConfig config;
 
