@@ -13,9 +13,15 @@ public class DirectionalEvent extends Event {
     protected double x, y;
     protected DirectionalType directionalType;
 
+    public DirectionalEvent() {
+        super();
+    }
+
     @Override
     public Message createMessage() {
         DirectionalMessage message = new DirectionalMessage();
+
+        message.setTimestamp(timestamp);
 
         message.setDirectionalType(directionalType);
         message.setX(x);

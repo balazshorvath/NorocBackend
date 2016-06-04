@@ -12,9 +12,15 @@ public class AttackEvent extends DirectionalEvent {
     protected double radius;
     protected double alpha;
 
+    public AttackEvent() {
+        super();
+    }
+
     @Override
     public Message createMessage() {
         AttackMessage message = new AttackMessage();
+
+        message.setTimestamp(timestamp);
 
         message.setDirectionalType(directionalType);
         message.setX(x);

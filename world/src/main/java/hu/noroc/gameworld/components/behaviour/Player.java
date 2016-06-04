@@ -30,6 +30,7 @@ public class Player implements Being, ActingEntity {
     private CharacterStat stats;
     private Set<BuffLogic> effects = new HashSet<>();
     private boolean dead = true;
+    private boolean inited = false;
 
     private Area area;
     private World world;
@@ -39,9 +40,8 @@ public class Player implements Being, ActingEntity {
     private CharacterSpell casting;
     private double castingX;
     private double castingY;
-    private int nextWayPoint = -1;
-    private int nextWayPointTime;
-    private double[][] movement;
+
+    private Movement movement;
 
     static final int tckCountReset = Integer.MAX_VALUE / 2 ;
     private int tickCount = 0;
@@ -74,6 +74,8 @@ public class Player implements Being, ActingEntity {
             }
             world.newSyncMessage(new SyncMessage(session, response));
             this.dead = false;
+            //TODO this is shit
+            this.inited = true;
             return;
         }
         if(stats.health <= 0 && ! (request instanceof RespawnRequest))
@@ -90,23 +92,9 @@ public class Player implements Being, ActingEntity {
             if(tickCount < casting.nextCast())
                 return;
 
-            if(movement != null && nextWayPoint != -1){
-                double xo = getX(), yo = getY();
-                double xd = movement[nextWayPoint][0], yd = movement[nextWayPoint][1];
-
-                movement = null;
-                nextWayPoint = -1;
-
-                long sumTime = Movement.calcTime(xo, yo, xd, yd, getStats().speed);
-                long time = nextWayPointTime - tickCount;
-                double percent = 1.0;
-                if(sumTime != 0)
-                    percent = (time / sumTime);
-                double dx = (xd - xo) * percent, dy = (yd - yo) * percent;
-
-                setX(xo + dx);
-                setY(yo + dy);
-            }
+            Movement.Position p = movement.stop();
+            setX(p.x);
+            setY(p.y);
 
             AttackEvent event = new AttackEvent(DirectionalEvent.DirectionalType.CAST);
             event.setBeing(this);
@@ -138,14 +126,13 @@ public class Player implements Being, ActingEntity {
             int start = 0;
             if(playerMoveRequest.getPath()[0].getX() == getX() && playerMoveRequest.getPath()[0].getY() == getY())
                 start = 1;
-            this.movement = new double[playerMoveRequest.getPath().length - start][2];
 
+            Movement.Position[] path = new Movement.Position[playerMoveRequest.getPath().length - start];
             for (int i = start; i < playerMoveRequest.getPath().length; i++) {
-                this.movement[i - start][0] = playerMoveRequest.getPath()[i].getX();
-                this.movement[i - start][1] = playerMoveRequest.getPath()[i].getY();
+                path[i - start] = new Movement.Position(playerMoveRequest.getPath()[i].getX(), playerMoveRequest.getPath()[i].getY());
             }
-            nextWayPointTime = 0;
-            nextWayPoint = 0;
+            movement.newMovement(path, movement.getCurrentPosition(), this.stats.speed);
+            sendMovingTo();
         }else if (request instanceof PlayerEquipRequest){
             PlayerEquipRequest playerEquipRequest = (PlayerEquipRequest) request;
 
@@ -178,13 +165,12 @@ public class Player implements Being, ActingEntity {
 
     @Override
     public void tick(){
+        if(!inited)
+            return;
         tickCount++;
-        if(tickCount % 601 == 0){
-            sendCurrentlyAt();
-        }
         if(tickCount >= tckCountReset
                 && (casting == null)
-                && (nextWayPoint == -1)){
+                && (!movement.hasNext())){
             tickCount = 0;
         }
 
@@ -204,51 +190,31 @@ public class Player implements Being, ActingEntity {
                 casting = null;
             });
         }
-        if(nextWayPoint != -1 && nextWayPointTime <= tickCount){
-            if(nextWayPoint == 0){
-                nextWayPointTime = tickCount + Movement.calcTime(
-                        getX(), getY(),
-                        movement[nextWayPoint][0], movement[nextWayPoint][1],
-                        stats.speed
-                );
-                sendMovingTo();
 
-                nextWayPoint++;
-            }else if(movement.length > nextWayPoint) {
-                this.setX(movement[nextWayPoint - 1][0]);
-                this.setY(movement[nextWayPoint - 1][1]);
-
-                nextWayPointTime = tickCount + Movement.calcTime(
-                        getX(), getY(),
-                        movement[nextWayPoint][0], movement[nextWayPoint][1],
-                        stats.speed
-                );
-
-                sendMovingTo();
-
-                nextWayPoint++;
-            }else{
-                this.setX(movement[nextWayPoint - 1][0]);
-                this.setY(movement[nextWayPoint - 1][1]);
-
-                nextWayPoint = -1;
-                movement = null;
+        if(movement.hasNext()){
+            Movement.Position p = movement.tick(this);
+            if(p != null) {
+                this.setX(p.x);
+                this.setY(p.y);
             }
+            sendCurrentlyAt();
         }
+        //TODO this is bad, the spells wont be able to remove themselfs
         effects.forEach(spellEffect -> spellEffect.tick(this));
 
     }
 
-    private void sendMovingTo(){
+    public void sendMovingTo(){
+        Movement.Position p = movement.getNextWayPoint();
         DirectionalEvent event = new DirectionalEvent();
-        event.setX(movement[nextWayPoint][0]);
-        event.setY(movement[nextWayPoint][1]);
+        event.setX(p.x);
+        event.setY(p.y);
         event.setBeing(this);
         event.setDirectionalType(DirectionalEvent.DirectionalType.MOVING_TO);
 
         area.newMessage(event);
     }
-    private void sendCurrentlyAt(){
+    public void sendCurrentlyAt(){
         DirectionalEvent event = new DirectionalEvent();
         event.setX(getX());
         event.setY(getY());
@@ -256,7 +222,7 @@ public class Player implements Being, ActingEntity {
         event.setDirectionalType(DirectionalEvent.DirectionalType.CURRENTLY_AT);
 
         area.newMessage(event);
-        world.newSyncMessage(new SyncMessage(getId(), event));
+        world.newSyncMessage(new SyncMessage(session, event));
     }
 
     private void sendDataEvent(){
@@ -314,12 +280,12 @@ public class Player implements Being, ActingEntity {
 
     @Override
     public String getId() {
-        return session;
+        return character.getId();
     }
 
     @Override
     public void setId(String id) {
-        session = id;
+        //do not.
     }
 
     @Override
@@ -372,6 +338,14 @@ public class Player implements Being, ActingEntity {
         return effects;
     }
 
+    public String getSession() {
+        return session;
+    }
+
+    public void setSession(String session) {
+        this.session = session;
+    }
+
     public World getWorld() {
         return world;
     }
@@ -400,12 +374,8 @@ public class Player implements Being, ActingEntity {
         this.nextCast = nextCast;
     }
 
-    public double[][] getMovement() {
-        return movement;
-    }
-
-    public void setMovement(double[][] movement) {
-        this.movement = movement;
+    public void initMovement(double x, double y){
+        this.movement = new Movement(new Movement.Position(x, y));
     }
 
 }

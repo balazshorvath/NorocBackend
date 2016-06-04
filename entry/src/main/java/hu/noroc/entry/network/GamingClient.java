@@ -17,15 +17,13 @@ import hu.noroc.common.data.model.user.User;
 import hu.noroc.common.mongodb.NorocDB;
 import hu.noroc.entry.NorocEntry;
 import hu.noroc.entry.security.Compressor;
-import hu.noroc.entry.security.SecurityUtils;
 import hu.noroc.gameworld.World;
 import org.codehaus.jackson.map.ObjectMapper;
-import sun.security.rsa.RSAPublicKeyImpl;
 
 import java.io.*;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
-import java.security.*;
+import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -40,29 +38,12 @@ public class GamingClient extends Client implements Runnable {
 
     private World world;
 
-    public void initRSA(){
-        byte[] buffer = new byte[140];
-        try {
-            SecurityUtils.generateKey(this);
-//            SubjectPublicKeyInfo spkInfo = SubjectPublicKeyInfo.getInstance(this.key.getPublic().getEncoded());
-//            socket.getOutputStream().write(spkInfo.parsePublicKey().getEncoded());
-            socket.getInputStream().read(buffer, 0, 140);
-
-            this.clientPublic = new RSAPublicKeyImpl(buffer);
-            this.online = true;
-        } catch (NoSuchAlgorithmException | IOException | InvalidKeyException | NoSuchProviderException e) {
-            online = false;
-            LOGGER.warning(e.getMessage());
-        }
-    }
-
     @Override
     public void run() {
         BufferedReader reader = null;
         BufferedWriter writer = null;
         ObjectMapper mapper = new ObjectMapper();
         int fails = 0;
-//        initRSA();
         online = true;
         state = ClientState.CONNECTED;
         try {
@@ -94,7 +75,6 @@ public class GamingClient extends Client implements Runnable {
                 state = ClientState.DISCONNECTED;
                 break;
             }
-//            message = NetworkData.rsaDecryptData(message, this.key.getPrivate());
             LOGGER.info("Recvd message: " + message);
             try {
                 request = mapper.readValue(Compressor.gunzip(message), Request.class);
@@ -105,7 +85,7 @@ public class GamingClient extends Client implements Runnable {
 
             if(super.inGame && !((request instanceof PauseRequest) || (request instanceof ReconnectRequest))){
                 try {
-                    world.newClientRequest(request);
+                    world.newClientRequest(request, characterId);
                 }catch (Exception ignored){
                     ignored.printStackTrace();
                 }
@@ -117,10 +97,6 @@ public class GamingClient extends Client implements Runnable {
                     break;
                 try {
                     writer.write(Compressor.gzip(mapper.writeValueAsString(response)) + '\n');
-//                    writer.write(NetworkData.rsaData(
-//                            mapper.writeValueAsString(response),
-//                            clientPublic
-//                    ));
                     writer.flush();
                 } catch (Exception ignored) {
                 }
@@ -135,9 +111,21 @@ public class GamingClient extends Client implements Runnable {
         switch (request.getType()){
             case "LoginRequest": {
                 LoginRequest loginRequest = (LoginRequest) request;
-                user = NorocDB.getInstance().getUserRepo().login(loginRequest.getUsername(), loginRequest.getPassword());
-                if(user == null)
+                User user1 = NorocDB.getInstance().getUserRepo().login(loginRequest.getUsername(), loginRequest.getPassword());
+                if(user1 == null)
                     return new ErrorResponse(SimpleResponse.LOGIN_FAILED);
+                Optional<Client> optional = NorocEntry.clients.values().stream()
+                        .filter(client1 ->
+                                client1.getUser() != null && user1.getUsername().equals(client1.getUser().getUsername())
+                        ).findFirst();
+                if(optional.isPresent()){
+                    Client c = optional.get();
+                    c.disconnect();
+                    if(c.getWorldId() != null)
+                        NorocEntry.worlds.get(c.worldId).logoutCharacter(c.user.getId(), c.characterId);
+
+                }
+                this.user = user1;
                 return new LoginResponse(this.session);
             }
             case "ListWorldsRequest":
@@ -193,11 +181,10 @@ public class GamingClient extends Client implements Runnable {
                     return new ErrorResponse(SimpleResponse.INVALID_REQUEST, "World server not found!");
 
                 try {
-                    world.loginCharacter((ChooseCharacterRequest) request, user.getId());
+                    characterId = world.loginCharacter((ChooseCharacterRequest) request, user.getId());
                 } catch (Exception e) {
                     return new ErrorResponse(SimpleResponse.INTERNAL_ERROR, "Character not found!");
                 }
-                super.characterId = session;
                 super.worldId = ((ChooseCharacterRequest) request).getWorldId();
                 super.inGame = true;
                 return new SuccessResponse();
@@ -221,5 +208,17 @@ public class GamingClient extends Client implements Runnable {
                 return new SuccessResponse(0);
         }
         return null;
+    }
+
+    public void reconnect(){
+        if(super.inGame && !world.isOnline(characterId)){
+            Request request = new ChooseCharacterRequest(this.worldId, this.characterId);
+            try {
+                world.loginCharacter((ChooseCharacterRequest) request, user.getId());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
     }
 }

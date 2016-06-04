@@ -1,7 +1,5 @@
 package hu.noroc.gameworld;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import hu.noroc.common.communication.request.Request;
 import hu.noroc.common.communication.request.pregame.ChooseCharacterRequest;
 import hu.noroc.common.data.model.character.CharacterClass;
@@ -42,9 +40,9 @@ public class World {
     private int maxPlayers = 50;
 
     private Ticker playerTicker;
-    HashMap<String, Player> players = new HashMap<>();
-    HashMap<Integer, Area> areas = new HashMap<>();
-    HashMap<String, Spell> spells = new HashMap<>();
+    private HashMap<String, Player> players = new HashMap<>();
+    private HashMap<Integer, Area> areas = new HashMap<>();
+    private HashMap<String, Spell> spells = new HashMap<>();
 
     private CharacterRepo characterRepo;
     private CharacterClassRepo characterClassRepo;
@@ -57,8 +55,8 @@ public class World {
     }
 
     /* EVENTS FROM OUTSIDE */
-    public void newClientRequest(Request message){
-        Player pl = players.get(message.getSession());
+    public void newClientRequest(Request message, String characterId){
+        Player pl = players.get(characterId);
         if(pl == null)
             return;
         if(areas.get(pl.getArea()) == null)
@@ -78,7 +76,7 @@ public class World {
         }
     }
 
-    public void loginCharacter(ChooseCharacterRequest request, String userId) throws Exception{
+    public String loginCharacter(ChooseCharacterRequest request, String userId) throws Exception{
         PlayerCharacter playerCharacter = characterRepo.findById(request.getCharacterId());
         if(!playerCharacter.getUserId().equals(userId))
             throw new Exception("You do not own this character!");
@@ -87,16 +85,21 @@ public class World {
 
         player.setCharacter(playerCharacter);
         player.setCharacterClass(characterClass);
-        player.setId(request.getSession());
+        player.setId(playerCharacter.getId());
+        player.setSession(request.getSession());
         player.setName(playerCharacter.getName());
         player.setWorld(this);
         //TODO
         player.setViewDist(500.0);
 
         player.update();
+        player.initMovement(playerCharacter.getX(), playerCharacter.getY());
+
+        putPlayerToArea(player);
 
         players.put(player.getId(), player);
         playerTicker.subscribe(player);
+        return playerCharacter.getId();
     }
     public void logoutCharacter(String userId, String session){
         Player player = players.get(session);
@@ -183,6 +186,10 @@ public class World {
     public void setMaxPlayers(int maxPlayers) {
         //TODO: handle player already playing.
         this.maxPlayers = maxPlayers;
+    }
+
+    public boolean isOnline(String character){
+        return players.containsKey(character);
     }
 
     public int getPlayerCount(){

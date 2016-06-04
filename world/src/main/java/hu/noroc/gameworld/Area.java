@@ -47,6 +47,7 @@ public class Area {
         this.sideLength = sideLength;
         this.mapWidth = mapWidth;
 
+        //TODO: this blocks the possibility of creating multiple world servers
         int indexHeight = id / mapWidth;
         int indexWidth = id % mapWidth;
 
@@ -116,6 +117,7 @@ public class Area {
         // npcs.parallelStream();
 
         //TODO: Friendly/Unfriendly stuff
+        //TODO: block movement/copy entities
         final double finalAd = ad;
         npcs.forEach(scriptedNPC -> {
             // Target - Entity

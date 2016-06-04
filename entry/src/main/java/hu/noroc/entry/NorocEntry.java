@@ -13,7 +13,6 @@ import hu.noroc.common.data.model.character.PlayerCharacter;
 import hu.noroc.common.data.model.spell.CharacterSpell;
 import hu.noroc.common.data.model.spell.Spell;
 import hu.noroc.common.data.model.user.User;
-import hu.noroc.common.data.repository.SpellRepo;
 import hu.noroc.common.mongodb.NorocDB;
 import hu.noroc.entry.config.EntryConfig;
 import hu.noroc.entry.network.Client;
@@ -121,7 +120,7 @@ public class NorocEntry {
                         //TODO: do it only, when IOException
                         LOGGER.info("Client disconnected");
                         ignored.printStackTrace();
-                        world.logoutCharacter(client.getUser().getId(), client.getSession());
+                        world.logoutCharacter(client.getUser().getId(), client.getCharacterId());
                     }
                 }
             }
@@ -223,6 +222,7 @@ public class NorocEntry {
                         if(client.isOnline())
                             client.disconnect();
                         client.setSocket(socket);
+                        client.reconnect();
                         new Thread(client).start();
                         LOGGER.info("Client reconnected.");
                         return;
@@ -249,8 +249,15 @@ public class NorocEntry {
     }
 
     public static SimpleResponse createCharacter(CreateCharacterRequest request, User user) throws IOException {
+        if(database.getCharacterRepo().findByUser(user.getId()).size() >= 4)
+            return new ErrorResponse(SimpleResponse.INTERNAL_ERROR);
+
+        if(request.getName().length() <= 3)
+            return new ErrorResponse(SimpleResponse.NAME_TAKEN);
+
         if(database.getCharacterRepo().findBy("name", request.getName()).size() != 0)
             return new ErrorResponse(SimpleResponse.NAME_TAKEN);
+
         CharacterClass characterClass = database.getCharacterClassRepo().findByCode(request.getClassId());
         if(characterClass == null)
             return new ErrorResponse(SimpleResponse.INVALID_REQUEST);

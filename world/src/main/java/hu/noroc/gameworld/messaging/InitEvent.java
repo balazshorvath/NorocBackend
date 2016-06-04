@@ -21,6 +21,9 @@ import java.util.Set;
 public class InitEvent extends Event {
     private InGamePlayer self;
 
+    public InitEvent() {
+        super();
+    }
 
     public InGamePlayer getSelf() {
         return self;
@@ -34,6 +37,7 @@ public class InitEvent extends Event {
     @Override
     public Message createMessage() {
         InitMessage message = new InitMessage();
+        message.setTimestamp(timestamp);
         message.setSelf(self);
         return message;
     }

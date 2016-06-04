@@ -15,6 +15,15 @@ public abstract class Event {
     protected EntityType entity;
     protected EntityActivityType activity;
     protected Being being;
+    protected Long timestamp;
+
+    public Event() {
+        timestamp = System.currentTimeMillis();
+    }
+
+    public Long getTimestamp() {
+        return timestamp;
+    }
 
     public abstract Message createMessage();
 

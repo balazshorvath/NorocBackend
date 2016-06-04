@@ -21,6 +21,15 @@ import org.codehaus.jackson.annotate.JsonTypeInfo;
 public class Message {
     protected EntityType entityType;
     protected String entityId;
+    protected Long timestamp;
+
+    public Long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Long timestamp) {
+        this.timestamp = timestamp;
+    }
 
     public String getEntityId() {
         return entityId;

@@ -44,11 +44,6 @@ public class Client {
             } catch (IOException ignored) {
             }
         }
-
-        if(! state.equals(ClientState.CONNECTING)) {
-            characterId = null;
-            worldId = null;
-        }
     }
 
     public void forceDisconnect() {
