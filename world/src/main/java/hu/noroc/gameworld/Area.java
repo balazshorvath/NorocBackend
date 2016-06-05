@@ -142,6 +142,9 @@ public class Area {
             double xpt = player.getX() - xp;
             double ypt = player.getY() - yp;
 
+            if(xpt == 0 && ypt == 0)
+                player.attacked(event.getEffect(), event.getBeing());
+
             double absVecpt = Math.sqrt((xpt * xpt + ypt * ypt));
 
             if (absVecpt > r)

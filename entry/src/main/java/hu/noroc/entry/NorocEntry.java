@@ -1,5 +1,6 @@
 package hu.noroc.entry;
 
+import hu.noroc.common.communication.request.PingRequest;
 import hu.noroc.common.communication.request.ReconnectRequest;
 import hu.noroc.common.communication.request.Request;
 import hu.noroc.common.communication.request.pregame.CreateCharacterRequest;
@@ -28,14 +29,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.net.*;
+import java.nio.charset.Charset;
+import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -54,6 +50,7 @@ public class NorocEntry {
     private static Map<String, Thread> worldListeners = new HashMap<>();
 
     private static boolean running = true;
+    public static DatagramSocket socket;
 
 
     public static void main(String[] args) throws InterruptedException {
@@ -89,11 +86,68 @@ public class NorocEntry {
             LOGGER.info("World initialized. Id: " + id + " with name: " + world.getName());
         }
         getTcpServer().start();
+        getUDPServer().start();
         worldListeners.values().stream().forEach(Thread::start);
 
         while(running){
             Thread.sleep(1000);
         }
+    }
+
+    private static Thread getUDPServer(){
+        return new Thread(() -> {
+            String portS = EntryConfig.getValue("port");
+            int port = 0;
+            if(portS != null)
+                port = Integer.parseInt(portS);
+            if(port == 0)
+                port = 1234;
+
+            ObjectMapper mapper = new ObjectMapper();
+            PingRequest request;
+            Client client;
+            try {
+                socket = new DatagramSocket(port);
+            } catch (SocketException e) {
+                e.printStackTrace();
+                return;
+            }
+            DatagramPacket packet;
+            byte[] received = new byte[4096];
+            while(running){
+                packet = new DatagramPacket(received, received.length);
+                try {
+                    socket.receive(packet);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    continue;
+                }
+                try {
+                    int len = 0;
+                    for (int i = 0; i < packet.getData().length; i++) {
+                        if(packet.getData()[i] == '\n'){
+                            len = i - 1;
+                            break;
+                        }
+                        if(packet.getData()[i] == 0){
+                            break;
+                        }
+                    }
+                    String msg = new String(packet.getData(), 0, len);
+                    request = mapper.readValue(Compressor.gunzip(msg), PingRequest.class);
+
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    continue;
+                }
+                client = clients.get(request.getSession());
+
+                if(client != null){
+                    client.udpPing(request, packet.getAddress(), packet.getPort());
+                }
+            }
+        });
     }
 
     private static Thread getWorldListener(World world){
@@ -106,14 +160,7 @@ public class NorocEntry {
                 try {
                     msg = world.getSyncMessage();
                     client = clients.get(msg.getSession());
-                    stream = client.getSocket().getOutputStream();
-
-                    String shit = mapper.writeValueAsString(
-                            msg.getEvent().createMessage()
-                    );
-                    stream.write((Compressor.gzip(shit) + '\n').getBytes());
-                    stream.flush();
-//                    LOGGER.info("Sent message to " + msg.getSession() + ": " + shit);
+                    client.sendSync(msg.getEvent().createMessage());
                 } catch(Exception ignored) {
                     if(!(ignored instanceof NullPointerException)
                         && client != null && !client.getState().equals(Client.ClientState.CONNECTING)){
@@ -225,6 +272,8 @@ public class NorocEntry {
                         client.reconnect();
                         new Thread(client).start();
                         LOGGER.info("Client reconnected.");
+                        return;
+                    }else {
                         return;
                     }
                 } catch (IOException e) {

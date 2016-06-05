@@ -141,4 +141,24 @@ public class ScriptedNPC extends Scripted<NPC> implements Being, ActingEntity {
 
     }
 
+    @Override
+    public int getCurrentHealth() {
+        return 0;
+    }
+
+    @Override
+    public void setCurrentHealth(int currentHealth) {
+
+    }
+
+    @Override
+    public int getCurrentMana() {
+        return 0;
+    }
+
+    @Override
+    public void setCurrentMana(int currentMana) {
+
+    }
+
 }

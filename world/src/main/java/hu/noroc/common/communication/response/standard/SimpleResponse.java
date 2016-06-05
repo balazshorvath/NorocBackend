@@ -14,6 +14,7 @@ import org.codehaus.jackson.annotate.JsonTypeInfo;
         @JsonSubTypes.Type(value = ListCharacterResponse.class, name = "ListCharacterResponse"),
         @JsonSubTypes.Type(value = ListWorldsResponse.class, name = "ListWorldsResponse"),
         @JsonSubTypes.Type(value = LoginResponse.class, name = "LoginResponse"),
+        @JsonSubTypes.Type(value = PingResponse.class, name = "PingResponse"),
         /* Empty responses */
         @JsonSubTypes.Type(value = SuccessResponse.class, name = "SuccessResponse"),
         @JsonSubTypes.Type(value = ErrorResponse.class, name = "ErrorResponse")
@@ -30,7 +31,6 @@ public abstract class SimpleResponse {
     public static final int SUCCESS = 100;
 
     protected int code;
-    protected String type;
     protected String message;
 
     public SimpleResponse() {

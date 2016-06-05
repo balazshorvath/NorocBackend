@@ -16,6 +16,7 @@ import org.codehaus.jackson.annotate.JsonTypeInfo;
         /*General*/
         @JsonSubTypes.Type(value = ReconnectRequest.class, name = "ReconnectRequest"),
         @JsonSubTypes.Type(value = PauseRequest.class, name = "PauseRequest"),
+        @JsonSubTypes.Type(value = PingRequest.class, name = "PingRequest"),
         /*Pre-game*/
         @JsonSubTypes.Type(value = LoginRequest.class, name = "LoginRequest"),
         @JsonSubTypes.Type(value = ListWorldsRequest.class, name = "ListWorldsRequest"),

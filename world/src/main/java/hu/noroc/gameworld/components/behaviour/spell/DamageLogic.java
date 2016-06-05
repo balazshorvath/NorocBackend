@@ -21,13 +21,16 @@ public class DamageLogic extends SpellLogic{
     public void effect(Being being) {
         switch (type){
             case DAMAGE:
-                if(damageType == DamageType.PHYSICAL)
-                    being.getStats().health -= (stat.health - being.getStats().armor);
-                else if (damageType == DamageType.MAGIC)
-                    being.getStats().health -= (stat.health - being.getStats().magicResist);
+                if(!being.getId().equals(super.characterId)) {
+                    if (damageType == DamageType.PHYSICAL)
+                        being.setCurrentHealth(being.getCurrentHealth() - (stat.health - being.getStats().armor + being.getStats().strength));
+                    else if (damageType == DamageType.MAGIC)
+                        being.setCurrentHealth(being.getCurrentMana() - (stat.health - being.getStats().magicResist + being.getStats().spirit));
+                }
                 break;
             case HEAL:
-                being.getStats().health += stat.health;
+                if(being.getId().equals(super.characterId))
+                    being.setCurrentHealth(being.getCurrentHealth() + stat.health);
                 break;
         }
     }

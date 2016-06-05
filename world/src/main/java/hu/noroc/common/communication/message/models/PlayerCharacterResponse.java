@@ -37,9 +37,11 @@ public class PlayerCharacterResponse {
         character.getSpells().forEach((s, characterSpell) -> this.spells.add(characterSpell));
         this.x = character.getX();
         this.y = character.getY();
-        this.maxHealth = hp;
-        this.maxMana = mana;
-        this.stat = stat;
+        this.maxHealth = stat.health;
+        this.maxMana = stat.mana;
+        this.stat = new CharacterStat(stat);
+        this.stat.health = hp;
+        this.stat.mana = mana;
     }
 
     public CharacterStat getStat() {

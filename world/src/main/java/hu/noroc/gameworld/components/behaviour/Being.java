@@ -33,4 +33,9 @@ public interface Being {
     void setY(double y);
     Integer getArea();
     void setArea(Area area);
+
+    int getCurrentHealth();
+    void setCurrentHealth(int currentHealth);
+    int getCurrentMana();
+    void setCurrentMana(int currentMana);
 }

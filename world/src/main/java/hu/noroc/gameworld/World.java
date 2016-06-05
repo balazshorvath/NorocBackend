@@ -174,6 +174,7 @@ public class World {
         if(player.currentArea() != null)
             player.currentArea().getPlayers().remove(player);
 
+        player.update();
         player.newEvent(new AreaChangedEvent());
         area.newPlayer(player);
         player.setArea(area);

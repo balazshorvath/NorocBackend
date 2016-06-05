@@ -18,6 +18,17 @@ public class OverTimeLogic extends BuffLogic {
         super(overTimeLogic);
     }
 
+    @Override
+    public void effect(Being being) {
+        if(being.getId().equals(super.characterId) && type.equals(SpellType.DOT))
+            return;
+        if(!being.getId().equals(super.characterId) && type.equals(SpellType.HOT))
+            return;
+
+        if (being.getEffects().contains(this))
+            being.getEffects().stream().filter(this::equals).findFirst().get().refreshDuration();
+        being.getEffects().add(new OverTimeLogic(this));
+    }
 
     public void tick(Being being){
         if(++tickCount > duration)
@@ -25,13 +36,14 @@ public class OverTimeLogic extends BuffLogic {
         if(tickCount % period == 0) {
             switch (type){
                 case DOT:
-                    if(damageType == DamageType.PHYSICAL)
-                        being.getStats().health -= (stat.health - being.getStats().armor);
+                    if (damageType == DamageType.PHYSICAL)
+                        being.setCurrentHealth(being.getCurrentHealth() - (stat.health - being.getStats().armor + being.getStats().strength));
                     else if (damageType == DamageType.MAGIC)
-                        being.getStats().health -= (stat.health - being.getStats().magicResist);
+                        being.setCurrentHealth(being.getCurrentHealth() - (stat.health - being.getStats().magicResist + being.getStats().spirit));
+
                     break;
                 case HOT:
-                    being.getStats().health += stat.health;
+                    being.setCurrentHealth(being.getCurrentHealth() + stat.health);
                     break;
             }
         }

@@ -3,6 +3,7 @@ package hu.noroc.gameworld.components.behaviour;
 import hu.noroc.common.communication.message.models.PlayerCharacterResponse;
 import hu.noroc.common.communication.request.Request;
 import hu.noroc.common.communication.request.ingame.*;
+import hu.noroc.gameworld.components.behaviour.spell.OverTimeLogic;
 import hu.noroc.gameworld.messaging.*;
 import hu.noroc.common.data.model.character.CharacterClass;
 import hu.noroc.common.data.model.character.CharacterStat;
@@ -19,6 +20,7 @@ import hu.noroc.gameworld.messaging.sync.SyncMessage;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * Created by Oryk on 4/3/2016.
@@ -28,7 +30,10 @@ public class Player implements Being, ActingEntity {
     private PlayerCharacter character;
     private CharacterClass characterClass;
     private CharacterStat stats;
-    private Set<BuffLogic> effects = new HashSet<>();
+    private int currentHealth;
+    private int currentMana;
+
+    private Set<BuffLogic> effects = new CopyOnWriteArraySet<>();
     private boolean dead = true;
     private boolean inited = false;
 
@@ -43,13 +48,28 @@ public class Player implements Being, ActingEntity {
 
     private Movement movement;
 
-    static final int tckCountReset = Integer.MAX_VALUE / 2 ;
+    static final int tckCountReset = Integer.MAX_VALUE / 2;
     private int tickCount = 0;
     private boolean countReset = false;
 
     public void update(){
         //TODO: update stats, spells based on items, buffs, debuffs, talents (if there will be such thing)
+        if(!inited)
+            this.stats = new CharacterStat(characterClass.getStat());
+        if(dead)
+            return;
+
         this.stats = new CharacterStat(characterClass.getStat());
+        effects.forEach(buffLogic -> {
+            if(! (buffLogic instanceof OverTimeLogic)){
+                this.stats.spirit += buffLogic.getStat().spirit;
+                this.stats.strength += buffLogic.getStat().strength;
+                this.stats.stamina += buffLogic.getStat().stamina;
+                this.stats.intellect += buffLogic.getStat().intellect;
+            }
+        });
+        this.stats.health += (this.stats.stamina * 10);
+        this.stats.mana += (this.stats.intellect * 10);
     }
 
     @Override
@@ -64,7 +84,8 @@ public class Player implements Being, ActingEntity {
         //TODO: validate, transform into Event, put into areaMessenger, act as expected
         if(dead && request instanceof InitRequest){
             update();
-            this.stats = new CharacterStat(characterClass.getStat());
+            currentHealth = stats.health;
+            currentMana = stats.mana;
             InitRequest initRequest = (InitRequest) request;
             InitEvent response = new InitEvent();
             response.setSelf(new InitEvent.InGamePlayer(this));
@@ -78,7 +99,7 @@ public class Player implements Being, ActingEntity {
             this.inited = true;
             return;
         }
-        if(stats.health <= 0 && ! (request instanceof RespawnRequest))
+        if(currentHealth <= 0 && ! (request instanceof RespawnRequest))
             return;
         if(effects.stream().anyMatch(spellEffect -> spellEffect.getType() == SpellEffect.SpellType.STUN))
             return;
@@ -143,6 +164,8 @@ public class Player implements Being, ActingEntity {
             this.character.setY(170.0);
 
             update();
+            currentHealth = stats.health;
+            currentMana = stats.mana;
             InitEvent response = new InitEvent();
             response.setSelf(new InitEvent.InGamePlayer(this));
             world.newSyncMessage(new SyncMessage(session, response));
@@ -153,12 +176,15 @@ public class Player implements Being, ActingEntity {
 
     @Override
     public void attacked(SpellLogic logic, Being caster) {
-        if(this.stats.health <= 0)
+        if(this.currentHealth <= 0)
             return;
         logic.effect(this);
-        if(this.stats.health <= 0) {
+        if(this.currentHealth <= 0) {
             this.dead = true;
-            this.stats.health = 0;
+            this.currentHealth = 0;
+        }
+        if(this.currentHealth > this.characterClass.getStat().health){
+            this.currentHealth = this.characterClass.getStat().health;
         }
         sendDataEvent();
     }
@@ -201,6 +227,15 @@ public class Player implements Being, ActingEntity {
         }
         //TODO this is bad, the spells wont be able to remove themselfs
         effects.forEach(spellEffect -> spellEffect.tick(this));
+        update();
+        if(tickCount % 50 == 0 && !dead){
+            this.currentHealth += 5;
+            this.currentMana += 5;
+            if(this.currentHealth > this.characterClass.getStat().health){
+                this.currentHealth = this.characterClass.getStat().health;
+            }
+        }
+        sendDataEvent();
 
     }
 
@@ -228,8 +263,8 @@ public class Player implements Being, ActingEntity {
     private void sendDataEvent(){
         area.newMessage(new DataEvent(new PlayerCharacterResponse(
                 this.character,
-                this.getCharacterClass().getStat().health,
-                this.getCharacterClass().getStat().mana,
+                this.currentHealth,
+                this.currentMana,
                 this.stats
         ), getId()));
     }
@@ -378,4 +413,23 @@ public class Player implements Being, ActingEntity {
         this.movement = new Movement(new Movement.Position(x, y));
     }
 
+    @Override
+    public int getCurrentHealth() {
+        return currentHealth;
+    }
+
+    @Override
+    public void setCurrentHealth(int currentHealth) {
+        this.currentHealth = currentHealth;
+    }
+
+    @Override
+    public int getCurrentMana() {
+        return currentMana;
+    }
+
+    @Override
+    public void setCurrentMana(int currentMana) {
+        this.currentMana = currentMana;
+    }
 }

@@ -1,6 +1,7 @@
 package hu.noroc.entry.network;
 
 import hu.noroc.common.communication.request.PauseRequest;
+import hu.noroc.common.communication.request.PingRequest;
 import hu.noroc.common.communication.request.ReconnectRequest;
 import hu.noroc.common.communication.request.pregame.ChooseCharacterRequest;
 import hu.noroc.common.communication.request.pregame.CreateCharacterRequest;
@@ -9,6 +10,7 @@ import hu.noroc.common.communication.response.ListCharacterResponse;
 import hu.noroc.common.communication.response.ListWorldsResponse;
 import hu.noroc.common.communication.response.LoginResponse;
 import hu.noroc.common.communication.response.standard.ErrorResponse;
+import hu.noroc.common.communication.response.standard.PingResponse;
 import hu.noroc.common.communication.response.standard.SimpleResponse;
 import hu.noroc.common.communication.request.Request;
 import hu.noroc.common.communication.request.pregame.LoginRequest;
@@ -21,8 +23,7 @@ import hu.noroc.gameworld.World;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.*;
-import java.net.Socket;
-import java.net.SocketTimeoutException;
+import java.net.*;
 import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -46,6 +47,12 @@ public class GamingClient extends Client implements Runnable {
         int fails = 0;
         online = true;
         state = ClientState.CONNECTED;
+
+        try {
+            datagramSocket = new DatagramSocket();
+        } catch (SocketException e) {
+            e.printStackTrace();
+        }
         try {
             writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             writer.write(Compressor.gzip(mapper.writeValueAsString(new SuccessResponse())) + '\n');
@@ -75,13 +82,27 @@ public class GamingClient extends Client implements Runnable {
                 state = ClientState.DISCONNECTED;
                 break;
             }
-            LOGGER.info("Recvd message: " + message);
             try {
                 request = mapper.readValue(Compressor.gunzip(message), Request.class);
             } catch (Exception e) {
                 LOGGER.info("Invalid message.");
                 continue;
             }
+
+            if(request instanceof PingRequest){
+                try {
+                    writer.write(Compressor.gzip(mapper.writeValueAsString(
+                            new PingResponse(
+                                    ((PingRequest) request).getTimestamp(),
+                                    System.currentTimeMillis(), 1)))
+                            + '\n'
+                    );
+                    writer.flush();
+                } catch (Exception ignored) {
+                }
+                continue;
+            }
+
 
             if(super.inGame && !((request instanceof PauseRequest) || (request instanceof ReconnectRequest))){
                 try {
@@ -209,6 +230,7 @@ public class GamingClient extends Client implements Runnable {
         }
         return null;
     }
+
 
     public void reconnect(){
         if(super.inGame && !world.isOnline(characterId)){
