@@ -70,6 +70,7 @@ public class Movement {
             if(currentWayPoint > path.length) {
                 return null;
             }
+
         }
         double percent = 1.0;
         if(sumTime != 0)

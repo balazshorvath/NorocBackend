@@ -43,7 +43,13 @@ public class Ticker {
 	private void createTicker(){
 		ticker = new Thread(()->{
 				while(enabled){
-					tickSubscribers.forEach(ActingEntity::tick);
+					tickSubscribers.forEach(actingEntity -> {
+						try{
+                            actingEntity.tick();
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+					});
 					try {
 						Thread.sleep(TICK_UNIT);
 					} catch (Exception ignored) {}
