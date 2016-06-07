@@ -32,7 +32,7 @@ import java.util.logging.Logger;
  * Created by Oryk on 3/19/2016.
  */
 public class World {
-    private final static Logger LOGGER = Logger.getLogger(World.class.getName());
+    public final static Logger LOGGER = Logger.getLogger(World.class.getName());
     private static boolean running = true;
 
     private double mapWidth, mapHeight, areaSize;

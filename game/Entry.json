@@ -1,5 +1,7 @@
 {
   "port": 1234,
   "dbUrl": "localhost",
-  "dbName": "Noroc"
+  "dbName": "Noroc",
+  "worldLog": "/var/log/NorocWorld.log",
+  "entryLog": "/var/log/NorocEntry.log"
 }

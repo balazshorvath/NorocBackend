@@ -32,6 +32,7 @@ import java.io.OutputStream;
 import java.net.*;
 import java.nio.charset.Charset;
 import java.util.*;
+import java.util.logging.FileHandler;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -69,6 +70,16 @@ public class NorocEntry {
                 EntryConfig.getValue("dbUrl"),
                 EntryConfig.getValue("dbName")
         );
+        if(EntryConfig.getValue("isLive") != null) {
+            try {
+                LOGGER.addHandler(new FileHandler(EntryConfig.getValue("entryLog")));
+                LOGGER.setUseParentHandlers(false);
+                World.LOGGER.addHandler(new FileHandler(EntryConfig.getValue("worldLog")));
+                World.LOGGER.setUseParentHandlers(false);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         for(int i = 1; i < args.length; i += 2) {
             WorldConfig config = null;
             World world = null;

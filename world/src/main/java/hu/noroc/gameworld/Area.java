@@ -22,8 +22,6 @@ import java.util.logging.Logger;
  * Created by Oryk on 3/19/2016.
  */
 public class Area {
-    private final static Logger LOGGER = Logger.getLogger(Area.class.getName());
-
     protected World world;
     /* Areas are squares */
     private double sideLength;
