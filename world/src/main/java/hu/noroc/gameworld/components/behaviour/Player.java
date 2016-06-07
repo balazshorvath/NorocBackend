@@ -180,14 +180,6 @@ public class Player implements Being, ActingEntity {
         if(this.currentHealth <= 0)
             return;
         logic.effect(this);
-        if(this.currentHealth <= 0) {
-            this.dead = true;
-            this.currentHealth = 0;
-        }
-        if(this.currentHealth > this.characterClass.getStat().health){
-            this.currentHealth = this.characterClass.getStat().health;
-        }
-        sendDataEvent();
     }
 
     @Override
@@ -228,16 +220,23 @@ public class Player implements Being, ActingEntity {
         }
         //TODO this is bad, the spells wont be able to remove themselfs
         effects.forEach(spellEffect -> spellEffect.tick(this));
+
         update();
+
+        if(this.currentHealth <= 0) {
+            this.dead = true;
+            this.currentHealth = 0;
+            this.movement.stop();
+        }
+        if(this.currentHealth > this.characterClass.getStat().health){
+            this.currentHealth = this.characterClass.getStat().health;
+        }
+        if(this.currentMana > this.characterClass.getStat().mana){
+            this.currentMana = this.characterClass.getStat().mana;
+        }
         if(tickCount % 50 == 0 && !dead){
             this.currentHealth += 5;
             this.currentMana += 5;
-            if(this.currentHealth > this.characterClass.getStat().health){
-                this.currentHealth = this.characterClass.getStat().health;
-            }
-            if(this.currentMana > this.characterClass.getStat().mana){
-                this.currentMana = this.characterClass.getStat().mana;
-            }
         }
         sendDataEvent();
 
