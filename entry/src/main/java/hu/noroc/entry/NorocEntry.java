@@ -347,7 +347,7 @@ public class NorocEntry {
     public static SimpleResponse deleteCharacter(DeleteCharacterRequest request, User user) throws IOException {
         PlayerCharacter character = database.getCharacterRepo().findById(request.getCharacterId());
 
-        if(!character.getUserId().equals(user.getId()))
+        if(character != null && !character.getUserId().equals(user.getId()))
             return new ErrorResponse(SimpleResponse.INTERNAL_ERROR);
 
         database.getCharacterRepo().delete(request.getCharacterId());
