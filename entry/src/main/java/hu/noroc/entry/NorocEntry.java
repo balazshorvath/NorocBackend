@@ -25,10 +25,7 @@ import hu.noroc.gameworld.config.WorldConfig;
 import hu.noroc.gameworld.messaging.sync.SyncMessage;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.*;
 import java.nio.charset.Charset;
 import java.util.*;
@@ -72,10 +69,13 @@ public class NorocEntry {
         );
         if(EntryConfig.getValue("isLive") != null) {
             try {
+                System.setErr(new PrintStream(new FileOutputStream("/var/log/NorocError.log")));
+
                 LOGGER.addHandler(new FileHandler(EntryConfig.getValue("entryLog")));
                 LOGGER.setUseParentHandlers(false);
                 World.LOGGER.addHandler(new FileHandler(EntryConfig.getValue("worldLog")));
                 World.LOGGER.setUseParentHandlers(false);
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
