@@ -18,6 +18,7 @@ import hu.noroc.gameworld.messaging.directional.AttackEvent;
 import hu.noroc.gameworld.messaging.directional.DirectionalEvent;
 import hu.noroc.gameworld.messaging.sync.SyncMessage;
 
+import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -49,7 +50,7 @@ public class Player implements Being, ActingEntity {
     private Movement movement;
 
     static final int tckCountReset = Integer.MAX_VALUE / 2;
-    private int tickCount = 0;
+    private Long tickCount = Long.valueOf(0);
     private boolean countReset = false;
 
     public void update(){
@@ -125,7 +126,7 @@ public class Player implements Being, ActingEntity {
             event.setActivity(EntityActivityType.ATTACK);
             area.newMessage(event);
 
-            nextCast = tickCount + casting.getCastTime();
+            nextCast = (int) (tickCount + casting.getCastTime());
             casting.newCooldown(nextCast);
 
             castingX = ((PlayerAttackRequest) request).getX();
@@ -197,7 +198,7 @@ public class Player implements Being, ActingEntity {
         if(tickCount >= tckCountReset
                 && (casting == null)
                 && (!movement.hasNext())){
-            tickCount = 0;
+            tickCount = 0L;
         }
 
         if(casting != null && tickCount >= nextCast){
@@ -223,7 +224,7 @@ public class Player implements Being, ActingEntity {
                 this.setX(p.x);
                 this.setY(p.y);
             }
-            sendCurrentlyAt();
+//            sendCurrentlyAt();
         }
         //TODO this is bad, the spells wont be able to remove themselfs
         effects.forEach(spellEffect -> spellEffect.tick(this));
@@ -233,6 +234,9 @@ public class Player implements Being, ActingEntity {
             this.currentMana += 5;
             if(this.currentHealth > this.characterClass.getStat().health){
                 this.currentHealth = this.characterClass.getStat().health;
+            }
+            if(this.currentMana > this.characterClass.getStat().mana){
+                this.currentMana = this.characterClass.getStat().mana;
             }
         }
         sendDataEvent();
@@ -249,16 +253,16 @@ public class Player implements Being, ActingEntity {
 
         area.newMessage(event);
     }
-    public void sendCurrentlyAt(){
-        DirectionalEvent event = new DirectionalEvent();
-        event.setX(getX());
-        event.setY(getY());
-        event.setBeing(this);
-        event.setDirectionalType(DirectionalEvent.DirectionalType.CURRENTLY_AT);
-
-        area.newMessage(event);
-        world.newSyncMessage(new SyncMessage(session, event));
-    }
+//    public void sendCurrentlyAt(){
+//        DirectionalEvent event = new DirectionalEvent();
+//        event.setX(getX());
+//        event.setY(getY());
+//        event.setBeing(this);
+//        event.setDirectionalType(DirectionalEvent.DirectionalType.CURRENTLY_AT);
+//
+//        area.newMessage(event);
+//        world.newSyncMessage(new SyncMessage(session, event));
+//    }
 
     private void sendDataEvent(){
         area.newMessage(new DataEvent(new PlayerCharacterResponse(

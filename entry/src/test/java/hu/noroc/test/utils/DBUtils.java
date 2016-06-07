@@ -31,10 +31,10 @@ public class DBUtils {
         User user = new User();
 
         user.setEmail("mail" + userCounter + "@gmail.com");
-        user.setUsername("u" + userCounter);
+        user.setUsername("user" + userCounter);
         user.setPassword(
                 new String(Base64.getEncoder().encode(
-                        MessageDigest.getInstance("SHA-256").digest("p".getBytes())
+                        MessageDigest.getInstance("SHA-256").digest(("password" + userCounter).getBytes())
                 ))
         );
 
@@ -401,11 +401,10 @@ public class DBUtils {
         cost.setType(SpellCost.CostType.MANA);
 
         // Spell stat
-        stat.health = 150;
+        stat.health = 50;
 
         // Spell effect
-        effect.setDamageType(SpellEffect.DamageType.MAGIC);
-        effect.setType(SpellEffect.SpellType.DAMAGE);
+        effect.setType(SpellEffect.SpellType.HEAL);
         effect.setStat(stat);
 
         // Spell
@@ -417,13 +416,13 @@ public class DBUtils {
         spell.setEffect(effect);
         spell.setAcceptedUpgrades(
                 new ArrayListBuilder<SpellEffect.SpellType>()
-                        .add(SpellEffect.SpellType.DOT)
+                        .add(SpellEffect.SpellType.HOT)
                         .get()
         );
         spell.setMaxUpgrades(20);
 
         spell.setAlpha(30.0);
-        spell.setRadius(10.0);
+        spell.setRadius(1.0);
 
         spell.setCooldown(150);
         spell.setCastTime(10);
@@ -442,10 +441,11 @@ public class DBUtils {
         cost.setType(SpellCost.CostType.MANA);
 
         // Spell stat
-        stat.health = 5;
+        stat.health = 50;
 
         // Spell effect
-        effect.setType(SpellEffect.SpellType.HEAL);
+        effect.setDamageType(SpellEffect.DamageType.PHYSICAL);
+        effect.setType(SpellEffect.SpellType.DAMAGE);
         effect.setStat(stat);
 
         // Spell
@@ -463,7 +463,7 @@ public class DBUtils {
         spell.setMaxUpgrades(20);
 
         spell.setAlpha(180.0);
-        spell.setRadius(1.0);
+        spell.setRadius(10.0);
 
         spell.setCooldown(10);
         spell.setCastTime(10);

@@ -1,0 +1,4 @@
+
+mongoimport -v --db Noroc --collection User --file /home/oryk/noroc_db/User.json
+
+mongoexport --db Noroc --collection User --out User.json

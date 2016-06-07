@@ -25,7 +25,7 @@ public class DamageLogic extends SpellLogic{
                     if (damageType == DamageType.PHYSICAL)
                         being.setCurrentHealth(being.getCurrentHealth() - (stat.health - being.getStats().armor + being.getStats().strength));
                     else if (damageType == DamageType.MAGIC)
-                        being.setCurrentHealth(being.getCurrentMana() - (stat.health - being.getStats().magicResist + being.getStats().spirit));
+                        being.setCurrentHealth(being.getCurrentHealth() - (stat.health - being.getStats().magicResist + being.getStats().spirit));
                 }
                 break;
             case HEAL:
