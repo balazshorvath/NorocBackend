@@ -40,6 +40,8 @@
             }
         }catch (MongoConnectionException $e){
             $error = "Couldn't connect to database.<br>In case of this error, contact me please: <b>balazs.peter.horvath@gmail.com</b>";
+        }finally{
+            $mongo->close();
         }
 
     }
