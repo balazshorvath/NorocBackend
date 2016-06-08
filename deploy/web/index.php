@@ -1,20 +1,54 @@
 <?php
-    if(array_key_exists("username", $_POST)) {
-        if(!array_key_exists("password", $_POST)
-            || !array_key_exists("passwordConfirm", $_POST)){
-            $error = "All the fields are required!";
-        }
+    class Validation{
+        public static $error = null;
 
-        if(strlen($_POST["username"]) <= 4
-            && !preg_match("/^[a-zA-Z0-9]{4,10}$/", $_POST["username"])){
-            $error = "The username must be at least 4 characters long (maximum 10) and can not contain special characters.";
+        static function validateRequest(){
+
+            if (!array_key_exists("password", $_POST)
+                || !array_key_exists("passwordConfirm", $_POST)) {
+                Validation::$error = "All the fields are required!";
+                return false;
+            }
+
+            if (strlen($_POST["username"]) <= 4
+                && !preg_match("/^[a-zA-Z0-9]{4,10}$/", $_POST["username"])) {
+                Validation::$error = "The username must be at least 4 characters long (maximum 10) and can not contain special characters.";
+                return false;
+            }
+            if (strlen($_POST["password"]) <= 4
+                && !preg_match("/^.{4,32}$/", $_POST["password"])) {
+                Validation::$error = "The password must contain at least 4 characters (maximum 32).";
+                return false;
+            }
+            if (strcmp($_POST["passwordConfirm"], $_POST["password"])) {
+                Validation::$error = "The passwords are not identical.";
+                return false;
+            }
+            return true;
         }
-        if(strlen($_POST["password"]) <= 4
-            && !preg_match("/^.{4,32}$/", $_POST["password"])){
-            $error = "The password must contain at least 4 characters (maximum 32).";
-        }
-        if(strcmp($_POST["passwordConfirm"], $_POST["password"])){
-            $error = "The passwords are not identical.";
+    }
+    if(array_key_exists("username", $_POST)) {
+        if(Validation::validateRequest()){
+            try{
+                $mongo = new MongoClient();
+                $norocDB = $mongo->selectDB("Noroc");
+
+                $collection = $norocDB->User;
+                $result = $collection->find(array("username" => $_POST["username"]));
+                if($result->count() < 1){
+                    $collection->insert(array(
+                        "username" => $_POST["username"],
+                        "password" => $_POST["password"]
+                    ));
+                    $message = "Success!";
+                }else{
+                    Validation::$error = "Username already taken.";
+                }
+            }catch (MongoConnectionException $e){
+                Validation::$error = "Couldn't connect to database.<br>In case of this error, contact me please: <b>balazs.peter.horvath@gmail.com</b>";
+            }finally{
+                $mongo->close();
+            }
         }
 //
 //        if(strlen($_POST["email"]) <= 4
@@ -23,26 +57,7 @@
 //        }
 
 
-        try{
-            $mongo = new MongoClient();
-            $norocDB = $mongo->selectDB("Noroc");
 
-            $collection = $norocDB->User;
-            $result = $collection->find(array("username" => $_POST["username"]));
-            if($result->count() < 1){
-                $collection->insert(array(
-                    "username" => $_POST["username"],
-                    "password" => $_POST["password"]
-                ));
-                $message = "Success!";
-            }else{
-                $error = "Username already taken.";
-            }
-        }catch (MongoConnectionException $e){
-            $error = "Couldn't connect to database.<br>In case of this error, contact me please: <b>balazs.peter.horvath@gmail.com</b>";
-        }finally{
-            $mongo->close();
-        }
 
     }
 ?>
@@ -68,9 +83,9 @@
             <input type="submit" value="Register"/>
         </form>
         <?php
-        if(isset($error)){
+        if(isset(Validation::$error)){
             ?>
-            <p class="error"> <?php echo $error; ?> </p>
+            <p class="error"> <?php echo Validation::$error; ?> </p>
             <?php
         }
     }else{ ?>
