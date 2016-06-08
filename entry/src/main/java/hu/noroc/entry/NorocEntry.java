@@ -169,9 +169,9 @@ public class NorocEntry {
                 try {
                     msg = world.getSyncMessage();
                     client = clients.get(msg.getSession());
-                    if(!client.getState().equals(Client.ClientState.CONNECTED)
-                            || !client.getState().equals(Client.ClientState.CONNECTING))
-                        world.logoutCharacter(client.getUser().getId(), client.getCharacterId());
+//                    if(!client.getState().equals(Client.ClientState.CONNECTED)
+//                            || !client.getState().equals(Client.ClientState.CONNECTING))
+//                        world.logoutCharacter(client.getUser().getId(), client.getCharacterId());
 
                     client.sendSync(msg.getEvent().createMessage());
                 } catch(Exception ignored) {
