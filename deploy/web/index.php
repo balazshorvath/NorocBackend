@@ -30,7 +30,7 @@
     }
     /* Code from http://stackoverflow.com/questions/23066005/sha256-in-php-java */
     function hash256($input) {
-        $hash = hash("sha256", utf8_encode($input), true);
+        $hash = hash("sha256", $input, true);
         $output = "";
         foreach(str_split($hash, 2) as $key => $value) {
             if (strpos($value, "0") === 0) {
@@ -52,10 +52,10 @@
                 if($result->count() < 1){
                     $collection->insert(array(
                         "username" => $_POST["username"],
-                        "password" => base64_encode(hash("sha256", utf8_encode($input), true))
+                        "password" => base64_encode(hash256($_POST["password"]))
                     ));
                     $message = "Success!";
-                }else{
+                }else {
                     Validation::$error = "Username already taken.";
                 }
             }catch (MongoConnectionException $e){
