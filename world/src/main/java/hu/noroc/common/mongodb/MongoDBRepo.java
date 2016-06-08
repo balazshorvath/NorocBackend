@@ -49,6 +49,10 @@ public class MongoDBRepo<T, ID> implements Repository<T, ID> {
     public ID insert(T t) throws IOException {
         return collection.insert(t).getSavedId();
     }
+    @Override
+    public ID save(T t) throws IOException {
+        return collection.save(t).getSavedId();
+    }
 
     @Override
     public void delete(ID id) {

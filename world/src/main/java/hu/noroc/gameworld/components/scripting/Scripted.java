@@ -1,6 +1,8 @@
 package hu.noroc.gameworld.components.scripting;
 
 
+import hu.noroc.gameworld.World;
+
 import javax.script.ScriptException;
 import java.io.File;
 import java.io.IOException;
@@ -14,7 +16,7 @@ import java.util.logging.Logger;
  */
 public abstract class Scripted<Entity> {
     //TODO: SET HANDLER
-    private final static Logger LOGGER = Logger.getLogger(Scripted.class.getName());
+    private final static Logger LOGGER = Logger.getLogger(World.class.getName());
     protected File file;
     protected String fileHash;
     protected Thread thread;

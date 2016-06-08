@@ -1,5 +1,6 @@
 package hu.noroc.entry;
 
+import hu.noroc.common.communication.request.PingRequest;
 import hu.noroc.common.communication.request.ReconnectRequest;
 import hu.noroc.common.communication.request.Request;
 import hu.noroc.common.communication.request.pregame.CreateCharacterRequest;
@@ -13,29 +14,22 @@ import hu.noroc.common.data.model.character.PlayerCharacter;
 import hu.noroc.common.data.model.spell.CharacterSpell;
 import hu.noroc.common.data.model.spell.Spell;
 import hu.noroc.common.data.model.user.User;
-import hu.noroc.common.data.repository.SpellRepo;
 import hu.noroc.common.mongodb.NorocDB;
 import hu.noroc.entry.config.EntryConfig;
 import hu.noroc.entry.network.Client;
 import hu.noroc.entry.network.GamingClient;
+import hu.noroc.entry.security.Compressor;
 import hu.noroc.entry.security.SecurityUtils;
 import hu.noroc.gameworld.World;
 import hu.noroc.gameworld.config.WorldConfig;
 import hu.noroc.gameworld.messaging.sync.SyncMessage;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.*;
+import java.net.*;
+import java.nio.charset.Charset;
+import java.util.*;
+import java.util.logging.FileHandler;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -54,6 +48,7 @@ public class NorocEntry {
     private static Map<String, Thread> worldListeners = new HashMap<>();
 
     private static boolean running = true;
+    public static DatagramSocket socket;
 
 
     public static void main(String[] args) throws InterruptedException {
@@ -72,6 +67,19 @@ public class NorocEntry {
                 EntryConfig.getValue("dbUrl"),
                 EntryConfig.getValue("dbName")
         );
+        if(EntryConfig.getValue("isLive") != null) {
+            try {
+                System.setErr(new PrintStream(new FileOutputStream("/var/log/NorocError.log")));
+
+                LOGGER.addHandler(new FileHandler(EntryConfig.getValue("entryLog")));
+                LOGGER.setUseParentHandlers(false);
+                World.LOGGER.addHandler(new FileHandler(EntryConfig.getValue("worldLog")));
+                World.LOGGER.setUseParentHandlers(false);
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         for(int i = 1; i < args.length; i += 2) {
             WorldConfig config = null;
             World world = null;
@@ -89,6 +97,7 @@ public class NorocEntry {
             LOGGER.info("World initialized. Id: " + id + " with name: " + world.getName());
         }
         getTcpServer().start();
+        getUDPServer().start();
         worldListeners.values().stream().forEach(Thread::start);
 
         while(running){
@@ -96,26 +105,81 @@ public class NorocEntry {
         }
     }
 
+    private static Thread getUDPServer(){
+        return new Thread(() -> {
+            String portS = EntryConfig.getValue("port");
+            int port = 0;
+            if(portS != null)
+                port = Integer.parseInt(portS);
+            if(port == 0)
+                port = 1234;
+
+            ObjectMapper mapper = new ObjectMapper();
+            PingRequest request;
+            Client client;
+            try {
+                socket = new DatagramSocket(port);
+            } catch (SocketException e) {
+                e.printStackTrace();
+                return;
+            }
+            DatagramPacket packet;
+            byte[] received = new byte[4096];
+            while(running){
+                packet = new DatagramPacket(received, received.length);
+                try {
+                    socket.receive(packet);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    continue;
+                }
+                try {
+                    int len = 0;
+                    for (int i = 0; i < packet.getData().length; i++) {
+                        if(packet.getData()[i] == '\n'){
+                            len = i - 1;
+                            break;
+                        }
+                        if(packet.getData()[i] == 0){
+                            break;
+                        }
+                    }
+                    String msg = new String(packet.getData(), 0, len);
+                    request = mapper.readValue(Compressor.gunzip(msg), PingRequest.class);
+
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    continue;
+                }
+                client = clients.get(request.getSession());
+
+                if(client != null){
+                    client.udpPing(request, packet.getAddress(), packet.getPort());
+                }
+            }
+        });
+    }
+
     private static Thread getWorldListener(World world){
         return new Thread(() -> {
             SyncMessage msg;
             ObjectMapper mapper = new ObjectMapper();
-            Client client;
+            Client client = null;
             OutputStream stream;
             while(running){
                 try {
                     msg = world.getSyncMessage();
                     client = clients.get(msg.getSession());
-                    stream = client.getSocket().getOutputStream();
-
-                    String shit = mapper.writeValueAsString(
-                            msg.getEvent().createMessage()
-                    );
-                    stream.write((shit + '\n').getBytes());
-                    stream.flush();
-//                    LOGGER.info("Sent message to " + msg.getSession() + ": " + shit);
+                    client.sendSync(msg.getEvent().createMessage());
                 } catch(Exception ignored) {
-                    if(! (ignored instanceof NullPointerException)) ignored.printStackTrace();
+                    if(!(ignored instanceof NullPointerException)
+                        && client != null && !client.getState().equals(Client.ClientState.CONNECTING)){
+                        //TODO: do it only, when IOException
+                        LOGGER.info("Client disconnected");
+                        ignored.printStackTrace();
+                        world.logoutCharacter(client.getUser().getId(), client.getCharacterId());
+                    }
                 }
             }
             LOGGER.info("World listener(" + world.getName() + ") is down.");
@@ -195,12 +259,14 @@ public class NorocEntry {
             }
             if(message != null){
                 try {
-                    Request request = new ObjectMapper().readValue(message, Request.class);
+                    Request request = new ObjectMapper().readValue(Compressor.gunzip(message), Request.class);
                     if(request instanceof ReconnectRequest){
                         GamingClient client = (GamingClient) clients.get(request.getSession());
                         if(client == null){
                             socket.getOutputStream().write(
-                                    new ObjectMapper().writeValueAsBytes(new ErrorResponse(SimpleResponse.INTERNAL_ERROR))
+                                    Compressor.gzip(
+                                            (new ObjectMapper().writeValueAsString(new ErrorResponse(SimpleResponse.INTERNAL_ERROR)))
+                                            + '\n').getBytes()
                             );
                             socket.getOutputStream().flush();
                             socket.close();
@@ -214,8 +280,11 @@ public class NorocEntry {
                         if(client.isOnline())
                             client.disconnect();
                         client.setSocket(socket);
+                        client.reconnect();
                         new Thread(client).start();
                         LOGGER.info("Client reconnected.");
+                        return;
+                    }else {
                         return;
                     }
                 } catch (IOException e) {
@@ -229,7 +298,10 @@ public class NorocEntry {
                 LOGGER.info("Connection problem.");
                 return;
             }
-            GamingClient client = new GamingClient(socket, SecurityUtils.randomString(32), null);
+            String session;
+            while(clients.containsKey(session = SecurityUtils.randomString(32)));
+
+            GamingClient client = new GamingClient(socket, session, null);
             new Thread(client).start();
             clients.put(client.getSession(), client);
             LOGGER.info("Client connected.");
@@ -237,8 +309,15 @@ public class NorocEntry {
     }
 
     public static SimpleResponse createCharacter(CreateCharacterRequest request, User user) throws IOException {
+        if(database.getCharacterRepo().findByUser(user.getId()).size() >= 4)
+            return new ErrorResponse(SimpleResponse.INTERNAL_ERROR);
+
+        if(request.getName().length() <= 3)
+            return new ErrorResponse(SimpleResponse.NAME_TAKEN);
+
         if(database.getCharacterRepo().findBy("name", request.getName()).size() != 0)
             return new ErrorResponse(SimpleResponse.NAME_TAKEN);
+
         CharacterClass characterClass = database.getCharacterClassRepo().findByCode(request.getClassId());
         if(characterClass == null)
             return new ErrorResponse(SimpleResponse.INVALID_REQUEST);
@@ -264,7 +343,12 @@ public class NorocEntry {
         );
         character.setXp(0);
 
-        database.getCharacterRepo().insert(character);
+        final String id = database.getCharacterRepo().insert(character);
+        //TODO: should it be session?
+        character = database.getCharacterRepo().findById(id);
+        character.getSpells().forEach((s, characterSpell) -> characterSpell.setOwnerId(id));
+        character.setId(id);
+        database.getCharacterRepo().save(character);
 
         return new ListCharacterResponse(
                 database.getCharacterRepo().findByUser(user.getId())
@@ -274,7 +358,7 @@ public class NorocEntry {
     public static SimpleResponse deleteCharacter(DeleteCharacterRequest request, User user) throws IOException {
         PlayerCharacter character = database.getCharacterRepo().findById(request.getCharacterId());
 
-        if(!character.getUserId().equals(user.getId()))
+        if(character != null && !character.getUserId().equals(user.getId()))
             return new ErrorResponse(SimpleResponse.INTERNAL_ERROR);
 
         database.getCharacterRepo().delete(request.getCharacterId());

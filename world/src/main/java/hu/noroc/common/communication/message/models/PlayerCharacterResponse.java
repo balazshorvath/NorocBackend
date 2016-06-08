@@ -1,6 +1,7 @@
 package hu.noroc.common.communication.message.models;
 
 import hu.noroc.common.data.model.InventoryItem;
+import hu.noroc.common.data.model.character.CharacterStat;
 import hu.noroc.common.data.model.character.PlayerCharacter;
 import hu.noroc.common.data.model.spell.CharacterSpell;
 
@@ -17,13 +18,16 @@ public class PlayerCharacterResponse {
     private String name;
     private String userId;
     private String classId;
+    private CharacterStat stat;
+    private int maxHealth;
+    private int maxMana;
     private long xp = 0;
     private List<InventoryItem> inventory = new ArrayList<>();
     private List<CharacterSpell> spells = new ArrayList<>();
 
     private double x, y;
 
-    public PlayerCharacterResponse(PlayerCharacter character) {
+    public PlayerCharacterResponse(PlayerCharacter character, int hp, int mana, CharacterStat stat) {
         this.id = character.getId();
         this.name = character.getName();
         this.userId = character.getUserId();
@@ -33,6 +37,35 @@ public class PlayerCharacterResponse {
         character.getSpells().forEach((s, characterSpell) -> this.spells.add(characterSpell));
         this.x = character.getX();
         this.y = character.getY();
+        this.maxHealth = stat.health;
+        this.maxMana = stat.mana;
+        this.stat = new CharacterStat(stat);
+        this.stat.health = hp;
+        this.stat.mana = mana;
+    }
+
+    public CharacterStat getStat() {
+        return stat;
+    }
+
+    public void setStat(CharacterStat stat) {
+        this.stat = stat;
+    }
+
+    public int getMaxHealth() {
+        return maxHealth;
+    }
+
+    public void setMaxHealth(int maxHealth) {
+        this.maxHealth = maxHealth;
+    }
+
+    public int getMaxMana() {
+        return maxMana;
+    }
+
+    public void setMaxMana(int maxMana) {
+        this.maxMana = maxMana;
     }
 
     public String getId() {

@@ -22,8 +22,6 @@ import java.util.logging.Logger;
  * Created by Oryk on 3/19/2016.
  */
 public class Area {
-    private final static Logger LOGGER = Logger.getLogger(Area.class.getName());
-
     protected World world;
     /* Areas are squares */
     private double sideLength;
@@ -47,6 +45,7 @@ public class Area {
         this.sideLength = sideLength;
         this.mapWidth = mapWidth;
 
+        //TODO: this blocks the possibility of creating multiple world servers
         int indexHeight = id / mapWidth;
         int indexWidth = id % mapWidth;
 
@@ -64,7 +63,8 @@ public class Area {
                 if(message == null){
                     continue;
                 }
-                if(message instanceof AttackEvent){
+                if(message instanceof AttackEvent
+                        && ((AttackEvent)message).getDirectionalType().equals(DirectionalEvent.DirectionalType.ATTACK)){
                     applySpell((AttackEvent) message);
                 }else if(message instanceof DataEvent){
                     final Event finalMessage = message;
@@ -80,7 +80,7 @@ public class Area {
                             scriptedNPC.newEvent(finalMessage);
                     });
                     if(message instanceof DirectionalEvent && finalMessage.getEntity() == EntityType.PLAYER
-                            && ((DirectionalEvent)message).getDirectionalType() == DirectionalEvent.DirectionalType.CURRENTLY_AT
+                            && ((DirectionalEvent)message).getDirectionalType() == DirectionalEvent.DirectionalType.MOVING_TO
                             && !isInside(((DirectionalEvent)message).getX(), ((DirectionalEvent)message).getY())){
                         world.putPlayerToArea((Player) message.getBeing());
                     }
@@ -99,14 +99,24 @@ public class Area {
         final double xd = event.getX();
         final double yd = event.getY();
         final double r = event.getRadius();
-        final double as = event.getAlpha();
+        final double as = Math.toRadians(event.getAlpha());
         // Direction deg
-        final double ad = Math.atan((yd - yp) / (xd - xp));
+        final double xdp = (xd - xp);
+        final double ydp = (yd - yp);
+        double ad = Math.atan(ydp / xdp);
+
+        if(xdp < 0) {
+            ad += Math.PI;
+        }else if(ydp < 0){
+            ad += Math.PI * 2;
+        }
 
         //TODO: Consider parallel execution (search->applySpell), while the entity calcs the damage
         // npcs.parallelStream();
 
         //TODO: Friendly/Unfriendly stuff
+        //TODO: block movement/copy entities
+        final double finalAd = ad;
         npcs.forEach(scriptedNPC -> {
             // Target - Entity
             double xpt = scriptedNPC.getEntity().getX() - xp;
@@ -122,13 +132,17 @@ public class Area {
 
             double apt = Math.acos(xpt / absVecpt);
 
-            if ((apt <= (ad + as)) && ((ad - as) <= apt))
+            if ((apt <= (finalAd + as)) && ((finalAd - as) <= apt))
                 scriptedNPC.getEntity().attacked(event.getEffect(), event.getBeing());
         });
         players.forEach(player -> {
             // Target - Entity
             double xpt = player.getX() - xp;
             double ypt = player.getY() - yp;
+
+            if(xpt == 0 && ypt == 0)
+                player.attacked(event.getEffect(), event.getBeing());
+
             double absVecpt = Math.sqrt((xpt * xpt + ypt * ypt));
 
             if (absVecpt > r)
@@ -137,17 +151,29 @@ public class Area {
                 player.attacked(event.getEffect(), event.getBeing());
                 return;
             }
-            double apt = Math.acos(xpt / absVecpt);
+            double apt = Math.atan(ypt / xpt);
+            if(xpt < 0) {
+                apt += Math.PI;
+            }else if(ypt < 0){
+                apt += Math.PI * 2;
+            }
 
-            if ((apt <= (ad + as)) && ((ad - as) <= apt))
+            if ((apt <= (finalAd + as)) && ((finalAd - as) <= apt))
                 player.attacked(event.getEffect(), event.getBeing());
         });
 
     }
 
     public void newPlayer(Player player){
-        this.players.forEach(player1 -> player.newEvent(new DataEvent(new PlayerCharacterResponse(player1.getCharacter()), player1.getId())));
-        this.newMessage(new DataEvent(new PlayerCharacterResponse(player.getCharacter()), player.getId()));
+        this.players.forEach(player1 -> player.newEvent(new DataEvent(new PlayerCharacterResponse(
+                player1.getCharacter(), player1.getCharacterClass().getStat().health, player1.getCharacterClass().getStat().mana,
+                player1.getStats()
+        ), player1.getId())));
+        this.newMessage(new DataEvent(new PlayerCharacterResponse(
+                player.getCharacter(), player.getCharacterClass().getStat().health,
+                player.getCharacterClass().getStat().mana,
+                player.getStats()
+        ), player.getId()));
         this.players.add(player);
     }
 

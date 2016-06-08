@@ -6,10 +6,6 @@ package hu.noroc.common.communication.message;
 public class DataMessage extends Message {
     Object data;
 
-    public DataMessage() {
-        this.type = DataMessage.class.getSimpleName();
-    }
-
     public Object getData() {
         return data;
     }

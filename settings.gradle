@@ -4,5 +4,5 @@ include 'entry'
 
 include 'world'
 
-include 'testclient'
+//include 'testclient'
 

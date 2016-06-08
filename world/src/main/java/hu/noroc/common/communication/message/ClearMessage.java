@@ -5,7 +5,4 @@ package hu.noroc.common.communication.message;
  */
 public class ClearMessage extends Message {
 
-    public ClearMessage() {
-        this.type = ClearMessage.class.getSimpleName();
-    }
 }

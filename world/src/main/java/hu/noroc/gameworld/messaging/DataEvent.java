@@ -12,16 +12,19 @@ public class DataEvent extends Event {
     String id;
 
     public DataEvent(PlayerCharacterResponse data, String id) {
+        super();
         this.data = data;
         this.id = id;
     }
 
     public DataEvent() {
+        super();
     }
 
     @Override
     public Message createMessage() {
         DataMessage message = new DataMessage();
+        message.setTimestamp(timestamp);
         message.setData(data);
         message.setEntityId(id);
         return message;

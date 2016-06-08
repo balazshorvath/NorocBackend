@@ -1,13 +1,22 @@
 package hu.noroc.entry.network;
 
+import hu.noroc.common.communication.message.Message;
+import hu.noroc.common.communication.request.PingRequest;
+import hu.noroc.common.communication.response.standard.PingResponse;
 import hu.noroc.common.data.model.user.User;
 import hu.noroc.entry.NorocEntry;
+import hu.noroc.entry.security.Compressor;
+import org.codehaus.jackson.map.ObjectMapper;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.Socket;
+import java.io.UnsupportedEncodingException;
+import java.net.*;
 import java.security.KeyPair;
 import java.security.PublicKey;
+import java.util.Base64;
 import java.util.Objects;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * Created by Oryk on 3/28/2016.
@@ -18,8 +27,14 @@ public class Client {
     protected Socket socket;
     protected String session;
 
+    protected InetAddress clientAddress;
+    protected int clientPort;
+    protected DatagramSocket datagramSocket;
+    protected Long lastPing;
+
     protected User user;
 
+    protected boolean inGame = false;
     protected String worldId;
     protected String characterId;
 
@@ -36,9 +51,6 @@ public class Client {
     }
 
     public void disconnect() {
-        if(characterId != null && !characterId.isEmpty()){
-            NorocEntry.worlds.get(worldId).logoutCharacter(user.getId(), session);
-        }
         this.online = false;
         if(this.socket != null && !this.socket.isClosed()){
             try {
@@ -46,9 +58,6 @@ public class Client {
             } catch (IOException ignored) {
             }
         }
-
-        characterId = null;
-        worldId = null;
     }
 
     public void forceDisconnect() {
@@ -58,11 +67,69 @@ public class Client {
         }
     }
 
+    public void udpPing(PingRequest request, InetAddress address, int port) {
+        if(!address.equals(this.clientAddress) || this.clientPort != port) {
+            this.clientAddress = address;
+            this.clientPort = port;
+        }
+        this.lastPing = System.currentTimeMillis();
+        String mess;
+        try {
+            mess = (new ObjectMapper().writeValueAsString(new PingResponse(request.getTimestamp(), this.lastPing, 0)));
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
+        if(mess == null) return;
+        byte[] bytes;
+        try {
+            bytes = Compressor.gzip(mess).getBytes();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
+        DatagramPacket packet = new DatagramPacket(bytes, bytes.length, clientAddress, clientPort);
+        try {
+            NorocEntry.socket.send(packet);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public boolean sendSync(Message message){
+        if(System.currentTimeMillis() - lastPing < 5000){
+            String mess;
+            try {
+                mess = (new ObjectMapper().writeValueAsString(message));
+            } catch (IOException e) {
+                e.printStackTrace();
+                return false;
+            }
+            if(mess == null) return false;
+            byte[] bytes;
+            try {
+                bytes = Compressor.gzip(mess).getBytes();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+            DatagramPacket packet = new DatagramPacket(bytes, bytes.length, clientAddress, clientPort);
+            try {
+                NorocEntry.socket.send(packet);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
     public enum ClientState{
         PAUSED,
         DISCONNECTED,
         TIMED_OUT,
         CONNECTED,
+        CONNECTING,
         UNKNOWN
     }
 
@@ -145,5 +212,9 @@ public class Client {
 
     public void setClientPublic(PublicKey clientPublic) {
         this.clientPublic = clientPublic;
+    }
+
+    public void setState(ClientState state) {
+        this.state = state;
     }
 }

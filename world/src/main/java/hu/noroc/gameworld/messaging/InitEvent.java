@@ -18,9 +18,12 @@ import java.util.Set;
 /**
  * Created by Oryk on 4/17/2016.
  */
-public class InitResponse extends Event {
+public class InitEvent extends Event {
     private InGamePlayer self;
 
+    public InitEvent() {
+        super();
+    }
 
     public InGamePlayer getSelf() {
         return self;
@@ -34,6 +37,7 @@ public class InitResponse extends Event {
     @Override
     public Message createMessage() {
         InitMessage message = new InitMessage();
+        message.setTimestamp(timestamp);
         message.setSelf(self);
         return message;
     }
@@ -43,7 +47,10 @@ public class InitResponse extends Event {
         private Set<BuffLogic> effects = new HashSet<>();
 
         public InGamePlayer(Player player) {
-            this.character = new PlayerCharacterResponse(player.getCharacter());
+            this.character = new PlayerCharacterResponse(
+                    player.getCharacter(), player.getCharacterClass().getStat().health, player.getCharacterClass().getStat().mana,
+                    player.getStats()
+            );
             this.effects = player.getEffects();
         }
 

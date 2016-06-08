@@ -9,10 +9,6 @@ public class TargetedMessage extends Message {
     protected String targetId;
     protected TargetedEvent.TargetedType targetedType;
 
-    public TargetedMessage() {
-        this.type = TargetedMessage.class.getSimpleName();
-    }
-
     public String getTargetId() {
         return targetId;
     }

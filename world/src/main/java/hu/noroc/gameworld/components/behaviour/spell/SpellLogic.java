@@ -9,7 +9,7 @@ import hu.noroc.gameworld.components.behaviour.Being;
 public abstract class SpellLogic extends SpellEffect {
     private String spellName;
     private String spellId;
-    private String characterId;
+    protected String characterId;
 
     public SpellLogic(SpellEffect spellEffect, String spellName, String spellId, String characterId) {
         super(spellEffect);

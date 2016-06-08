@@ -4,6 +4,7 @@ import hu.noroc.common.data.model.NPCModel;
 import hu.noroc.common.data.model.spell.Spell;
 import hu.noroc.common.data.repository.NPCRepo;
 import hu.noroc.common.mongodb.NorocDB;
+import hu.noroc.gameworld.World;
 import hu.noroc.gameworld.components.scripting.ScriptedNPC;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
@@ -25,7 +26,7 @@ import java.util.logging.Logger;
  * Created by Oryk on 3/20/2016.
  */
 public class WorldConfig {
-    private final static Logger LOGGER = Logger.getLogger(WorldConfig.class.getName());
+    private final static Logger LOGGER = Logger.getLogger(World.class.getName());
     private double mapWidth, mapHeight, areaSize;
     private String name;
     private List<ScriptedNPC> scripts = new ArrayList<>();

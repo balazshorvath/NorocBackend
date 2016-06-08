@@ -3,37 +3,40 @@ package hu.noroc.gameworld.components.behaviour;
 import hu.noroc.common.communication.message.models.PlayerCharacterResponse;
 import hu.noroc.common.communication.request.Request;
 import hu.noroc.common.communication.request.ingame.*;
-import hu.noroc.gameworld.messaging.DataEvent;
-import hu.noroc.gameworld.messaging.InitResponse;
+import hu.noroc.gameworld.components.behaviour.spell.OverTimeLogic;
+import hu.noroc.gameworld.messaging.*;
 import hu.noroc.common.data.model.character.CharacterClass;
 import hu.noroc.common.data.model.character.CharacterStat;
 import hu.noroc.common.data.model.character.PlayerCharacter;
 import hu.noroc.common.data.model.spell.CharacterSpell;
 import hu.noroc.common.data.model.spell.SpellEffect;
-import hu.noroc.common.mongodb.NorocDB;
 import hu.noroc.gameworld.Area;
 import hu.noroc.gameworld.World;
 import hu.noroc.gameworld.components.behaviour.spell.BuffLogic;
 import hu.noroc.gameworld.components.behaviour.spell.SpellLogic;
-import hu.noroc.gameworld.messaging.EntityActivityType;
-import hu.noroc.gameworld.messaging.Event;
 import hu.noroc.gameworld.messaging.directional.AttackEvent;
 import hu.noroc.gameworld.messaging.directional.DirectionalEvent;
 import hu.noroc.gameworld.messaging.sync.SyncMessage;
 
-import java.io.IOException;
+import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * Created by Oryk on 4/3/2016.
  */
-public class Player implements Being, LivingEntity {
+public class Player implements Being, ActingEntity {
     private String session;
     private PlayerCharacter character;
     private CharacterClass characterClass;
     private CharacterStat stats;
-    private Set<BuffLogic> effects = new HashSet<>();
+    private int currentHealth;
+    private int currentMana;
+
+    private Set<BuffLogic> effects = new CopyOnWriteArraySet<>();
+    private boolean dead = true;
+    private boolean inited = false;
 
     private Area area;
     private World world;
@@ -41,25 +44,64 @@ public class Player implements Being, LivingEntity {
 
     private int nextCast;
     private CharacterSpell casting;
-    private int nextWayPoint = -1;
-    private int nextWayPointTime;
-    private double[][] movement;
+    private double castingX;
+    private double castingY;
 
-    private int tickCount = 0;
+    private Movement movement;
 
+    static final int tckCountReset = Integer.MAX_VALUE / 2;
+    private Long tickCount = Long.valueOf(0);
+    private boolean countReset = false;
 
     public void update(){
         //TODO: update stats, spells based on items, buffs, debuffs, talents (if there will be such thing)
-        this.stats = characterClass.getStat();
+        if(!inited)
+            this.stats = new CharacterStat(characterClass.getStat());
+        if(dead)
+            return;
+
+        this.stats = new CharacterStat(characterClass.getStat());
+        effects.forEach(buffLogic -> {
+            if(! (buffLogic instanceof OverTimeLogic)){
+                this.stats.spirit += buffLogic.getStat().spirit;
+                this.stats.strength += buffLogic.getStat().strength;
+                this.stats.stamina += buffLogic.getStat().stamina;
+                this.stats.intellect += buffLogic.getStat().intellect;
+            }
+        });
+        this.stats.health += (this.stats.stamina * 10);
+        this.stats.mana += (this.stats.intellect * 10);
     }
 
     @Override
     public void newEvent(Event message) {
+        if(message.getBeing() != null && message.getBeing().getId().equals(this.getId())
+                && !((message instanceof DataEvent) || (message instanceof InitEvent) || (message instanceof AreaChangedEvent)))
+            return;
         world.newSyncMessage(new SyncMessage(session, message));
     }
 
     public void clientRequest(Request request){
         //TODO: validate, transform into Event, put into areaMessenger, act as expected
+        if(dead && request instanceof InitRequest){
+            update();
+            currentHealth = stats.health;
+            currentMana = stats.mana;
+            InitRequest initRequest = (InitRequest) request;
+            InitEvent response = new InitEvent();
+            response.setSelf(new InitEvent.InGamePlayer(this));
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException ignored) {
+            }
+            world.newSyncMessage(new SyncMessage(session, response));
+            this.dead = false;
+            //TODO this is shit
+            this.inited = true;
+            return;
+        }
+        if(currentHealth <= 0 && ! (request instanceof RespawnRequest))
+            return;
         if(effects.stream().anyMatch(spellEffect -> spellEffect.getType() == SpellEffect.SpellType.STUN))
             return;
         if (request instanceof PlayerAttackRequest){
@@ -69,13 +111,26 @@ public class Player implements Being, LivingEntity {
                 return;
             if(tickCount < nextCast)
                 return;
-            if(tickCount < casting.getNextCast())
+            if(tickCount < casting.nextCast())
                 return;
-            nextCast = tickCount + casting.getCastTime();
-            casting.setCooldown(nextCast);
 
-            movement = null;
-            nextWayPoint = -1;
+            Movement.Position p = movement.stop();
+            setX(p.x);
+            setY(p.y);
+
+            AttackEvent event = new AttackEvent(DirectionalEvent.DirectionalType.CAST);
+            event.setBeing(this);
+            event.setX(((PlayerAttackRequest) request).getX());
+            event.setY(((PlayerAttackRequest) request).getY());
+            event.setEffect(casting.getEffect().createLogic(getId(), casting.getId(), casting.getName()));
+            event.setActivity(EntityActivityType.ATTACK);
+            area.newMessage(event);
+
+            nextCast = (int) (tickCount + casting.getCastTime());
+            casting.newCooldown(nextCast);
+
+            castingX = ((PlayerAttackRequest) request).getX();
+            castingY = ((PlayerAttackRequest) request).getY();
         }else if (request instanceof PlayerInteractRequest){
             PlayerInteractRequest playerInteractRequest = (PlayerInteractRequest) request;
 
@@ -83,7 +138,8 @@ public class Player implements Being, LivingEntity {
 
         }else if (request instanceof PlayerMoveRequest){
             if(casting != null)
-                return;
+                casting = null;
+
             PlayerMoveRequest playerMoveRequest = (PlayerMoveRequest) request;
 
             if(playerMoveRequest.getPath() == null || playerMoveRequest.getPath().length < 1)
@@ -92,122 +148,128 @@ public class Player implements Being, LivingEntity {
             int start = 0;
             if(playerMoveRequest.getPath()[0].getX() == getX() && playerMoveRequest.getPath()[0].getY() == getY())
                 start = 1;
-            this.movement = new double[playerMoveRequest.getPath().length - start][2];
 
+            Movement.Position[] path = new Movement.Position[playerMoveRequest.getPath().length - start];
             for (int i = start; i < playerMoveRequest.getPath().length; i++) {
-                this.movement[i - start][0] = playerMoveRequest.getPath()[i].getX();
-                this.movement[i - start][1] = playerMoveRequest.getPath()[i].getY();
+                path[i - start] = new Movement.Position(playerMoveRequest.getPath()[i].getX(), playerMoveRequest.getPath()[i].getY());
             }
-//            DirectionalEvent event = new DirectionalEvent();
-//            event.setX(movement[0][0]);
-//            event.setY(movement[0][1]);
-//            event.setBeing(this);
-//            event.setDirectionalType(DirectionalEvent.DirectionalType.MOVING_TO);
-//            nextWayPointTime = Movement.calcTime(getX(), getY(), movement[0][0], movement[0][1], stats.speed);
-//            world.newSyncMessage(new SyncMessage(session, event));
-            nextWayPointTime = 0;
-            nextWayPoint = 0;
+            movement.newMovement(path, movement.getCurrentPosition(), this.stats.speed);
+            sendMovingTo();
         }else if (request instanceof PlayerEquipRequest){
             PlayerEquipRequest playerEquipRequest = (PlayerEquipRequest) request;
 
-        }else if(request instanceof InitRequest){
-            InitRequest initRequest = (InitRequest) request;
-            InitResponse response = new InitResponse();
-            response.setSelf(new InitResponse.InGamePlayer(this));
+        }else if(request instanceof RespawnRequest){
+            if(!dead)
+                return;
+            this.character.setX(256.0);
+            this.character.setY(170.0);
+
+            update();
+            currentHealth = stats.health;
+            currentMana = stats.mana;
+            InitEvent response = new InitEvent();
+            response.setSelf(new InitEvent.InGamePlayer(this));
             world.newSyncMessage(new SyncMessage(session, response));
+            sendDataEvent();
+            this.dead = false;
         }
     }
 
     @Override
     public void attacked(SpellLogic logic, Being caster) {
+        if(this.currentHealth <= 0)
+            return;
         logic.effect(this);
-
-        AttackEvent event = new AttackEvent();
-        event.setActivity(EntityActivityType.ATTACK);
-        event.setBeing(caster);
-        event.setX(event.getX());
-        event.setY(event.getY());
-
-        world.newSyncMessage(new SyncMessage(session, event));
     }
 
     @Override
     public void tick(){
+        if(!inited)
+            return;
         tickCount++;
-        if(casting != null && tickCount == nextCast){
+        if(tickCount >= tckCountReset
+                && (casting == null)
+                && (!movement.hasNext())){
+            tickCount = 0L;
+        }
+
+        if(casting != null && tickCount >= nextCast){
             casting.createLogics().forEach(spellLogic -> {
-                AttackEvent event = new AttackEvent();
+                AttackEvent event = new AttackEvent(DirectionalEvent.DirectionalType.ATTACK);
 
                 event.setActivity(EntityActivityType.ATTACK);
                 event.setBeing(this);
-                event.setX(event.getX());
-                event.setY(event.getY());
+                event.setX(castingX);
+                event.setY(castingY);
                 event.setRadius(casting.getRadius());
                 event.setAlpha(casting.getAlpha());
+                event.setEffect(spellLogic);
 
                 area.newMessage(event);
+                casting = null;
             });
-            // Send back a smaller message, since it's just an acknowledgement
-            AttackEvent event = new AttackEvent();
-            event.setActivity(EntityActivityType.ATTACK);
-            event.setBeing(this);
-            world.newSyncMessage(new SyncMessage(session, event));
-            casting = null;
         }
-        if(nextWayPoint != -1 && nextWayPointTime <= tickCount){
-            if(nextWayPoint == 0){
-                nextWayPointTime = tickCount + Movement.calcTime(
-                        getX(), getY(),
-                        movement[nextWayPoint][0], movement[nextWayPoint][1],
-                        stats.speed
-                );
-                sendMovingTo();
 
-                nextWayPoint++;
-            }else if(movement.length > nextWayPoint) {
-                this.setX(movement[nextWayPoint - 1][0]);
-                this.setY(movement[nextWayPoint - 1][1]);
-
-                nextWayPointTime = tickCount + Movement.calcTime(
-                        getX(), getY(),
-                        movement[nextWayPoint][0], movement[nextWayPoint][1],
-                        stats.speed
-                );
-
-                sendCurrentlyAt();
-                sendMovingTo();
-
-                nextWayPoint++;
-            }else{
-                this.setX(movement[nextWayPoint - 1][0]);
-                this.setY(movement[nextWayPoint - 1][1]);
-
-                sendCurrentlyAt();
-                nextWayPoint = -1;
-                movement = null;
+        if(movement.hasNext()){
+            Movement.Position p = movement.tick(this);
+            if(p != null) {
+                this.setX(p.x);
+                this.setY(p.y);
             }
+//            sendCurrentlyAt();
         }
+        //TODO this is bad, the spells wont be able to remove themselfs
         effects.forEach(spellEffect -> spellEffect.tick(this));
 
+        update();
+
+        if(this.currentHealth <= 0) {
+            this.dead = true;
+            this.currentHealth = 0;
+            this.movement.stop();
+        }
+        if(this.currentHealth > this.characterClass.getStat().health){
+            this.currentHealth = this.characterClass.getStat().health;
+        }
+        if(this.currentMana > this.characterClass.getStat().mana){
+            this.currentMana = this.characterClass.getStat().mana;
+        }
+        if(tickCount % 50 == 0 && !dead){
+            this.currentHealth += 5;
+            this.currentMana += 5;
+        }
+        sendDataEvent();
+
     }
 
-    private void sendCurrentlyAt(){
+    public void sendMovingTo(){
+        Movement.Position p = movement.getNextWayPoint();
         DirectionalEvent event = new DirectionalEvent();
-        event.setX(getX());
-        event.setY(getY());
-        event.setBeing(this);
-        event.setDirectionalType(DirectionalEvent.DirectionalType.CURRENTLY_AT);
-
-        area.newMessage(event);
-    }
-    private void sendMovingTo(){
-        DirectionalEvent event = new DirectionalEvent();
-        event.setX(movement[nextWayPoint][0]);
-        event.setY(movement[nextWayPoint][1]);
+        event.setX(p.x);
+        event.setY(p.y);
         event.setBeing(this);
         event.setDirectionalType(DirectionalEvent.DirectionalType.MOVING_TO);
 
         area.newMessage(event);
+    }
+//    public void sendCurrentlyAt(){
+//        DirectionalEvent event = new DirectionalEvent();
+//        event.setX(getX());
+//        event.setY(getY());
+//        event.setBeing(this);
+//        event.setDirectionalType(DirectionalEvent.DirectionalType.CURRENTLY_AT);
+//
+//        area.newMessage(event);
+//        world.newSyncMessage(new SyncMessage(session, event));
+//    }
+
+    private void sendDataEvent(){
+        area.newMessage(new DataEvent(new PlayerCharacterResponse(
+                this.character,
+                this.currentHealth,
+                this.currentMana,
+                this.stats
+        ), getId()));
     }
 
     @Override
@@ -256,12 +318,12 @@ public class Player implements Being, LivingEntity {
 
     @Override
     public String getId() {
-        return session;
+        return character.getId();
     }
 
     @Override
     public void setId(String id) {
-        session = id;
+        //do not.
     }
 
     @Override
@@ -314,6 +376,14 @@ public class Player implements Being, LivingEntity {
         return effects;
     }
 
+    public String getSession() {
+        return session;
+    }
+
+    public void setSession(String session) {
+        this.session = session;
+    }
+
     public World getWorld() {
         return world;
     }
@@ -342,12 +412,27 @@ public class Player implements Being, LivingEntity {
         this.nextCast = nextCast;
     }
 
-    public double[][] getMovement() {
-        return movement;
+    public void initMovement(double x, double y){
+        this.movement = new Movement(new Movement.Position(x, y));
     }
 
-    public void setMovement(double[][] movement) {
-        this.movement = movement;
+    @Override
+    public int getCurrentHealth() {
+        return currentHealth;
     }
 
+    @Override
+    public void setCurrentHealth(int currentHealth) {
+        this.currentHealth = currentHealth;
+    }
+
+    @Override
+    public int getCurrentMana() {
+        return currentMana;
+    }
+
+    @Override
+    public void setCurrentMana(int currentMana) {
+        this.currentMana = currentMana;
+    }
 }

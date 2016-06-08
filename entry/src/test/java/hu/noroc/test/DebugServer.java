@@ -20,11 +20,10 @@ public class DebugServer {
     @Test
     public void runServer() throws InterruptedException, IOException, NoSuchAlgorithmException {
         DBUtils.cleanDBs();
-        user = DBUtils.createUser();
-        user1 = DBUtils.createUser();
+        for (int i = 0; i < 10; i++) {
+            DBUtils.createUser();
+        }
         DBUtils.initClasses();
-        DBUtils.createCharacter("WARRIOR", user.getId());
-        DBUtils.createCharacter("WARRIOR", user1.getId());
 
         server = new TestServer();
         server.startGame();

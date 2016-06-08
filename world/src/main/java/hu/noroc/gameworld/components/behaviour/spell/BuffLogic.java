@@ -32,9 +32,11 @@ public class BuffLogic extends SpellLogic {
 
     @Override
     public void effect(Being being) {
-        if(being.getEffects().contains(this))
-            being.getEffects().stream().filter(this::equals).findFirst().get().refreshDuration();
-        being.getEffects().add(new BuffLogic(this));
+        if(being.getId().equals(super.characterId)) {
+            if (being.getEffects().contains(this))
+                being.getEffects().stream().filter(this::equals).findFirst().get().refreshDuration();
+            being.getEffects().add(new BuffLogic(this));
+        }
     }
 
     public int getTickCount() {

@@ -1,9 +1,10 @@
 package hu.noroc.gameworld.components.scripting;
 
-import hu.noroc.gameworld.components.behaviour.LivingEntity;
+import hu.noroc.gameworld.components.behaviour.ActingEntity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 
 public class Ticker {
@@ -14,7 +15,7 @@ public class Ticker {
 	
 	public static final int TICK_UNIT = 100; //milliseconds
 	
-	List<LivingEntity> tickSubscribers = new ArrayList<>();
+	List<ActingEntity> tickSubscribers = new CopyOnWriteArrayList<>();
 	
 	public void start() {
 		if (!enabled) {
@@ -28,11 +29,11 @@ public class Ticker {
 		this.enabled = false;
 	}
 	
-	public void subscribe(LivingEntity sbscrbr){
+	public void subscribe(ActingEntity sbscrbr){
 		tickSubscribers.add(sbscrbr);
 	}
 	
-	public void unsubscribe(LivingEntity sbscrbr){
+	public void unsubscribe(ActingEntity sbscrbr){
 		tickSubscribers.remove(sbscrbr);
 		if(tickSubscribers.isEmpty()){
 			this.stop();
@@ -42,7 +43,13 @@ public class Ticker {
 	private void createTicker(){
 		ticker = new Thread(()->{
 				while(enabled){
-					tickSubscribers.forEach(LivingEntity::tick);
+					tickSubscribers.forEach(actingEntity -> {
+						try{
+                            actingEntity.tick();
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+					});
 					try {
 						Thread.sleep(TICK_UNIT);
 					} catch (Exception ignored) {}

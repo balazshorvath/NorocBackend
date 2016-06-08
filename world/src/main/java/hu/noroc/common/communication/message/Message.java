@@ -12,7 +12,6 @@ import org.codehaus.jackson.annotate.JsonTypeInfo;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({
-    @JsonSubTypes.Type(value = AttackMessage.class, name = "AttackMessage"),
     @JsonSubTypes.Type(value = DirectionalMessage.class, name = "DirectionalMessage"),
     @JsonSubTypes.Type(value = TargetedMessage.class, name = "TargetedMessage"),
     @JsonSubTypes.Type(value = DataMessage.class, name = "DataMessage"),
@@ -20,16 +19,16 @@ import org.codehaus.jackson.annotate.JsonTypeInfo;
     @JsonSubTypes.Type(value = InitMessage.class, name = "InitMessage")
 })
 public class Message {
-    protected String type;
     protected EntityType entityType;
     protected String entityId;
+    protected Long timestamp;
 
-    public String getType() {
-        return type;
+    public Long getTimestamp() {
+        return timestamp;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setTimestamp(Long timestamp) {
+        this.timestamp = timestamp;
     }
 
     public String getEntityId() {

@@ -12,6 +12,7 @@ public interface Repository<T, ID> {
     List<T> findAll() throws IOException;
 
     ID insert(T t) throws IOException;
+    ID save(T t) throws IOException;
     void delete(ID id);
     void deleteAll();
 }

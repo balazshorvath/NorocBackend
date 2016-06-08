@@ -3,6 +3,7 @@ package hu.noroc.common.data.model.spell;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import hu.noroc.gameworld.components.behaviour.spell.SpellLogic;
 import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.mongojack.ObjectId;
 
 import java.util.ArrayList;
@@ -11,8 +12,12 @@ import java.util.List;
 /**
  * Created by Oryk on 4/1/2016.
  */
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = CharacterSpell.class, name = "CharacterSpell")
+})
 public class Spell {
     protected String id;
+    protected int ordinal;
     protected String name;
     protected String description;
     protected double radius, alpha;
@@ -38,6 +43,7 @@ public class Spell {
         this.effect = spell.effect;
         this.acceptedUpgrades = spell.acceptedUpgrades;
         this.maxUpgrades = spell.maxUpgrades;
+        this.ordinal = spell.ordinal;
     }
 
     @ObjectId
@@ -50,6 +56,14 @@ public class Spell {
     @JsonProperty("_id")
     public void setId(String id) {
         this.id = id;
+    }
+
+    public int getOrdinal() {
+        return ordinal;
+    }
+
+    public void setOrdinal(int ordinal) {
+        this.ordinal = ordinal;
     }
 
     public SpellEffect getEffect() {

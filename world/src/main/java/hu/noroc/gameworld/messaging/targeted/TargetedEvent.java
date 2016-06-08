@@ -11,9 +11,15 @@ public class TargetedEvent extends Event {
     protected String targetId;
     protected TargetedType targetedType;
 
+    public TargetedEvent() {
+        super();
+    }
+
     @Override
     public Message createMessage() {
         TargetedMessage message = new TargetedMessage();
+
+        message.setTimestamp(timestamp);
 
         message.setEntityId(being.getId());
         message.setEntityType(entity);

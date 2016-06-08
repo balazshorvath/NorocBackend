@@ -12,12 +12,10 @@ public class ListWorldsResponse extends SimpleResponse {
 
     public ListWorldsResponse() {
         super(SUCCESS);
-        super.type = "ListWorldsResponse";
     }
 
     public ListWorldsResponse(List<WorldData> worlds) {
         super(SUCCESS);
-        super.type = "ListWorldsResponse";
         this.worlds = worlds;
     }
 
