@@ -1,4 +1,5 @@
 <?php
+
     class Validation{
         public static $error = null;
 
@@ -27,6 +28,19 @@
             return true;
         }
     }
+    /* Code from http://stackoverflow.com/questions/23066005/sha256-in-php-java */
+    function hash256($input) {
+        $hash = hash("sha256", utf8_encode($input));
+        $output = "";
+        foreach(str_split($hash, 2) as $key => $value) {
+            if (strpos($value, "0") === 0) {
+                $output .= str_replace("0", "", $value);
+            } else {
+                $output .= $value;
+            }
+        }
+        return $output;
+    }
     if(array_key_exists("username", $_POST)) {
         if(Validation::validateRequest()){
             try{
@@ -38,7 +52,7 @@
                 if($result->count() < 1){
                     $collection->insert(array(
                         "username" => $_POST["username"],
-                        "password" => base64_encode(hash("sha256", $_POST["password"]))
+                        "password" => base64_encode(hash256($_POST["password"]))
                     ));
                     $message = "Success!";
                 }else{
