@@ -164,13 +164,15 @@ public class NorocEntry {
     private static Thread getWorldListener(World world){
         return new Thread(() -> {
             SyncMessage msg;
-            ObjectMapper mapper = new ObjectMapper();
             Client client = null;
-            OutputStream stream;
             while(running){
                 try {
                     msg = world.getSyncMessage();
                     client = clients.get(msg.getSession());
+                    if(!client.getState().equals(Client.ClientState.CONNECTED)
+                            || !client.getState().equals(Client.ClientState.CONNECTING))
+                        world.logoutCharacter(client.getUser().getId(), client.getCharacterId());
+
                     client.sendSync(msg.getEvent().createMessage());
                 } catch(Exception ignored) {
                     if(!(ignored instanceof NullPointerException)
