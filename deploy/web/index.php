@@ -68,11 +68,15 @@
             <input type="submit" value="Register"/>
         </form>
         <?php
-    }
-    if(isset($error)){
-        ?>
-        <p class="error"> <?php echo $error; ?> </p>
+        if(isset($error)){
+            ?>
+            <p class="error"> <?php echo $error; ?> </p>
+            <?php
+        }
+    }else{ ?>
+        <p> <?php echo $message; ?> </p>
         <?php
     }
+
 ?>
 </html>
