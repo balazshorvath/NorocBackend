@@ -38,7 +38,7 @@
                 if($result->count() < 1){
                     $collection->insert(array(
                         "username" => $_POST["username"],
-                        "password" => $_POST["password"]
+                        "password" => base64_encode(hash(CRYPT_SHA256, $_POST["password"]))
                     ));
                     $message = "Success!";
                 }else{
