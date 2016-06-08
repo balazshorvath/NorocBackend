@@ -6,11 +6,11 @@
         }
 
         if(strlen($_POST["username"]) <= 4
-            && preg_match("^[a-zA-Z0-9]{4,10}$", $_POST["username"])){
+            && !preg_match("/^[a-zA-Z0-9]{4,10}$/", $_POST["username"])){
             $error = "The username must be at least 4 characters long (maximum 10) and can not contain special characters.";
         }
         if(strlen($_POST["password"]) <= 4
-            && preg_match("^.{4,32}$", $_POST["username"])){
+            && !preg_match("/^.{4,32}$/", $_POST["password"])){
             $error = "The password must contain at least 4 characters (maximum 32).";
         }
         if(strcmp($_POST["passwordConfirm"], $_POST["password"])){
