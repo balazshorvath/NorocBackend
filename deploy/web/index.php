@@ -54,7 +54,7 @@
                         "username" => $_POST["username"],
                         "password" => base64_encode(hash256($_POST["password"]))
                     ));
-                    $message = "Success!";
+                    $message = "Success!<br>After you start the game don't forget to set up the server address in the options:<br>Host - noroc.ddns.net<br>Port - 1234";
                 }else {
                     Validation::$error = "Username already taken.";
                 }
