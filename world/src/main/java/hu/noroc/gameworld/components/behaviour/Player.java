@@ -252,16 +252,6 @@ public class Player implements Being, ActingEntity {
 
         area.newMessage(event);
     }
-//    public void sendCurrentlyAt(){
-//        DirectionalEvent event = new DirectionalEvent();
-//        event.setX(getX());
-//        event.setY(getY());
-//        event.setBeing(this);
-//        event.setDirectionalType(DirectionalEvent.DirectionalType.CURRENTLY_AT);
-//
-//        area.newMessage(event);
-//        world.newSyncMessage(new SyncMessage(session, event));
-//    }
 
     private void sendDataEvent(){
         area.newMessage(new DataEvent(new PlayerCharacterResponse(

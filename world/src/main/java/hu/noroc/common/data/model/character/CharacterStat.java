@@ -14,7 +14,8 @@ public class CharacterStat {
     public CharacterStat() {
     }
 
-    public CharacterStat(CharacterStat characterStat){
+
+    public CharacterStat(CharacterStat characterStat) {
         this.health = characterStat.health;
         this.mana = characterStat.mana;
         this.armor = characterStat.armor;
@@ -26,7 +27,8 @@ public class CharacterStat {
         this.speed = characterStat.speed;
 
     }
-    public CharacterStat copy(){
+
+    public CharacterStat copy() {
         return new CharacterStat(this);
     }
 }

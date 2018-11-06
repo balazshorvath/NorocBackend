@@ -8,9 +8,9 @@ import hu.noroc.gameworld.components.behaviour.spell.SpellLogic;
 
 /**
  * Stats property which stats need to be changed in case someone is effected by the spell.
- *
+ * <p>
  * Spells can have mixed type. In that case the opposite of the main type (BUFF-DEBUFF) also happens.
- *
+ * <p>
  * Created by Oryk on 4/1/2016.
  */
 public class SpellEffect {
@@ -35,8 +35,8 @@ public class SpellEffect {
 
     }
 
-    public SpellLogic createLogic(String caster, String spellId, String spellName){
-        switch (type){
+    public SpellLogic createLogic(String caster, String spellId, String spellName) {
+        switch (type) {
             case BUFF:
             case DEBUFF:
             case STUN:
@@ -54,8 +54,12 @@ public class SpellEffect {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         SpellEffect that = (SpellEffect) o;
 
@@ -77,7 +81,17 @@ public class SpellEffect {
     public SpellEffect() {
     }
 
-    public enum SpellType{
+    public SpellEffect(CharacterStat stat, SpellType type,
+            DamageType damageType, boolean mixed, int duration, int period) {
+        this.stat = stat;
+        this.type = type;
+        this.damageType = damageType;
+        this.mixed = mixed;
+        this.duration = duration;
+        this.period = period;
+    }
+
+    public enum SpellType {
         BUFF,
         DEBUFF,
 
@@ -89,7 +103,8 @@ public class SpellEffect {
 
         STUN
     }
-    public enum DamageType{
+
+    public enum DamageType {
         MAGIC,
         PHYSICAL
     }
